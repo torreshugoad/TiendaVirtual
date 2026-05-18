@@ -2,14 +2,20 @@ const express = require('express');
 
 const router = express.Router();
 
-const Pedido = require('../models/Pedido');
+const Pedido =
+  require('../models/Pedido');
 
-const Producto = require('../models/Producto');
+const Producto =
+  require('../models/Producto');
+
+const Configuracion =
+  require('../models/Configuracion');
 
 
 // OBTENER PEDIDOS
 
-router.get('/', async (req, res) => {
+router.get('/',
+async (req, res) => {
 
   try {
 
@@ -24,8 +30,10 @@ router.get('/', async (req, res) => {
     console.log(error);
 
     res.status(500).json({
+
       error:
         'Error al obtener pedidos'
+
     });
   }
 });
@@ -33,26 +41,85 @@ router.get('/', async (req, res) => {
 
 // CREAR PEDIDO
 
-router.post('/', async (req, res) => {
+router.post('/',
+async (req, res) => {
 
   try {
 
+    // INCREMENTAR NRO PEDIDO
+
+    const configuracion =
+
+      await Configuracion.findOneAndUpdate(
+
+        {},
+
+        {
+          $inc: {
+            nropedido: 1
+          }
+        },
+
+        {
+          new: true,
+          upsert: true
+        }
+
+      );
+
+    // CREAR PEDIDO
+
     const pedido =
-      new Pedido(req.body);
+      new Pedido({
+
+        nropedido:
+          configuracion.nropedido,
+
+        cliente:
+          req.body.cliente,
+
+        telefono:
+          req.body.telefono,
+
+        direccion:
+          req.body.direccion,
+
+        tipoEntrega:
+          req.body.tipoEntrega,
+
+        envio:
+          req.body.envio,
+
+        items:
+          req.body.items,
+
+        subtotal:
+          req.body.subtotal,
+
+        total:
+          req.body.total,
+
+        estado:
+          req.body.estado,
+
+        fecha:
+          req.body.fecha
+
+      });
 
     await pedido.save();
 
-    res.json({
-      ok: true
-    });
+    res.json(pedido);
 
   } catch (error) {
 
     console.log(error);
 
     res.status(500).json({
+
       error:
         'Error al guardar pedido'
+
     });
   }
 });
@@ -61,7 +128,9 @@ router.post('/', async (req, res) => {
 // DESCONTAR STOCK
 
 router.post(
+
   '/descontar-stock',
+
   async (req, res) => {
 
     try {
@@ -76,15 +145,20 @@ router.post(
             item.productoId
           );
 
-        if (!producto) continue;
+        if (!producto)
+          continue;
 
         // STOCK NORMAL
 
         if (
-          producto.tipoStock !== 'granel'
+
+          producto.tipoStock !==
+          'granel'
+
         ) {
 
           const variante =
+
             producto.variantes.find(
               v =>
                 v.peso === item.peso
@@ -93,7 +167,10 @@ router.post(
           if (variante) {
 
             variante.stock -=
-              Number(item.cantidad);
+
+              Number(
+                item.cantidad
+              );
           }
 
         } else {
@@ -112,23 +189,31 @@ router.post(
           ) {
 
             kg =
+
               Number(
+
                 texto.replace(
                   'kg',
                   ''
                 )
+
               );
 
           } else if (
+
             texto.includes('gr')
+
           ) {
 
             kg =
+
               Number(
+
                 texto.replace(
                   'gr',
                   ''
                 )
+
               ) / 1000;
 
           } else {
@@ -138,8 +223,12 @@ router.post(
           }
 
           producto.stockGranelKg -=
+
             kg *
-            Number(item.cantidad);
+
+            Number(
+              item.cantidad
+            );
         }
 
         await producto.save();
@@ -154,18 +243,25 @@ router.post(
       console.log(error);
 
       res.status(500).json({
+
         error:
           'Error al descontar stock'
+
       });
     }
   }
 );
 
-router.put('/:id', async (req, res) => {
+
+// ACTUALIZAR ESTADO
+
+router.put('/:id',
+async (req, res) => {
 
   try {
 
-    const { estado } = req.body;
+    const { estado } =
+      req.body;
 
     const pedido =
       await Pedido.findByIdAndUpdate(
@@ -173,11 +269,7 @@ router.put('/:id', async (req, res) => {
         req.params.id,
 
         {
-          estado,
-
-          confirmacionEnviada:
-            estado ===
-            'Confirmación enviada'
+          estado
         },
 
         {
@@ -195,6 +287,7 @@ router.put('/:id', async (req, res) => {
 
       error:
         'Error actualizando pedido'
+
     });
   }
 });

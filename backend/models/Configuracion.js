@@ -9,7 +9,12 @@ const configuracionSchema =
 
     telefonoWhatsapp: String,
 
-    nombreTienda: String
+    nombreTienda: String,
+
+nropedido: {
+  type: Number,
+  default: 1000
+},
 
   });
 

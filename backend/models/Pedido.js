@@ -3,6 +3,11 @@ const mongoose = require('mongoose');
 const PedidoSchema =
   new mongoose.Schema({
 
+    nropedido: {
+      type: String,
+      required: true
+    },
+
     cliente: {
       type: String,
       required: true
@@ -53,11 +58,6 @@ const PedidoSchema =
     estado: {
       type: String,
       default: 'Pedido pendiente'
-    },
-
-    confirmacionEnviada: {
-      type: Boolean,
-      default: false
     },
 
     fecha: {

@@ -100,16 +100,9 @@ async function obtenerProductos() {
 
         },
 
-        body: JSON.stringify({
-
-          estado: nuevoEstado,
-
-          confirmacionEnviada:
-            nuevoEstado ===
-            'Confirmación enviada'
-
-        })
-
+body: JSON.stringify({
+  estado: nuevoEstado
+})
       }
 
     );
@@ -375,9 +368,6 @@ XLSX.utils.book_append_sheet(
       case 'Pedido pendiente':
         return '#ff9800';
 
-      case 'Confirmación enviada':
-        return '#2196F3';
-
       case 'Pedido entregado':
         return '#4CAF50';
 
@@ -482,10 +472,6 @@ XLSX.utils.book_append_sheet(
           </option>
 
           <option>
-            Confirmación enviada
-          </option>
-
-          <option>
             Pedido entregado
           </option>
 
@@ -531,13 +517,33 @@ XLSX.utils.book_append_sheet(
 
               <div>
 
-                <h2 style={{
-                  margin: 0
-                }}>
+               <div style={{
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+  flexWrap: 'wrap'
+}}>
 
-                  {pedido.cliente}
+  <h2 style={{
+    margin: 0
+  }}>
+    {pedido.cliente}
+  </h2>
 
-                </h2>
+  <span style={{
+    background: '#16a34a',
+    color: 'white',
+    padding: '4px 10px',
+    borderRadius: 20,
+    fontSize: 14,
+    fontWeight: 'bold'
+  }}>
+
+    Pedido #{pedido.nropedido}
+
+  </span>
+
+</div>
 
                 <p>
                   📞 {pedido.telefono}
@@ -727,22 +733,6 @@ XLSX.utils.book_append_sheet(
               marginTop: 25
             }}>
 
-              <button
-                onClick={() =>
-                  cambiarEstado(
-                    pedido._id,
-                    'Confirmación enviada'
-                  )
-                }
-                style={{
-                  ...botonEstado,
-                  background: '#2196F3'
-                }}
-              >
-
-                Confirmación enviada
-
-              </button>
 
               <button
                 onClick={() =>
