@@ -1,49 +1,47 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
 import Link from 'next/link';
 
 export default function HomePage() {
 
-const [productos, setProductos] =
-  useState([]);
+  const [productos, setProductos] =
+    useState([]);
 
-const [categorias, setCategorias] =
-  useState([]);
+  const [categorias, setCategorias] =
+    useState([]);
 
-const [
-  categoriaSeleccionada,
-  setCategoriaSeleccionada
-] = useState(null);
+  const [
+    categoriaSeleccionada,
+    setCategoriaSeleccionada
+  ] = useState(null);
 
-const [carrito, setCarrito] =
-  useState(() => {
+  const [carrito, setCarrito] =
+    useState(() => {
 
-    if (
-      typeof window !== 'undefined'
-    ) {
+      if (
+        typeof window !== 'undefined'
+      ) {
 
-      const carritoGuardado =
+        const carritoGuardado =
 
-        localStorage.getItem(
-          'carrito'
-        );
+          localStorage.getItem(
+            'carrito'
+          );
 
-      if (carritoGuardado) {
+        if (carritoGuardado) {
 
-        return JSON.parse(
-          carritoGuardado
-        );
+          return JSON.parse(
+            carritoGuardado
+          );
+        }
       }
-    }
 
-    return [];
-  });
+      return [];
+    });
 
   const [configuracion, setConfiguracion] =
     useState(null);
-
 
   useEffect(() => {
 
@@ -55,7 +53,6 @@ const [carrito, setCarrito] =
 
   }, []);
 
-
   useEffect(() => {
 
     localStorage.setItem(
@@ -64,7 +61,6 @@ const [carrito, setCarrito] =
     );
 
   }, [carrito]);
-
 
   async function obtenerProductos() {
 
@@ -86,7 +82,6 @@ const [carrito, setCarrito] =
     }
   }
 
-
   async function obtenerCategorias() {
 
     try {
@@ -101,19 +96,18 @@ const [carrito, setCarrito] =
 
       setCategorias(
 
-  Array.isArray(data)
+        Array.isArray(data)
 
-    ? data
+          ? data
 
-    : []
-);
+          : []
+      );
 
     } catch (error) {
 
       console.log(error);
     }
   }
-
 
   async function obtenerConfiguracion() {
 
@@ -135,13 +129,10 @@ const [carrito, setCarrito] =
     }
   }
 
-
   function calcularStockDisponible(
     producto,
     variante
   ) {
-
-    // STOCK NORMAL
 
     if (
       producto.tipoStock !== 'granel'
@@ -151,8 +142,6 @@ const [carrito, setCarrito] =
         variante.stock || 0
       );
     }
-
-    // STOCK GRANEL
 
     let kgNecesarios = 0;
 
@@ -197,7 +186,6 @@ const [carrito, setCarrito] =
       ) / kgNecesarios
     );
   }
-
 
   function agregarAlCarrito(
     producto,
@@ -272,7 +260,6 @@ const [carrito, setCarrito] =
     }
   }
 
-
   const productosFiltrados =
 
     categoriaSeleccionada
@@ -300,7 +287,6 @@ const [carrito, setCarrito] =
 
       : [];
 
-
   const cantidadCarrito =
 
     carrito.reduce(
@@ -308,7 +294,6 @@ const [carrito, setCarrito] =
         acc + item.cantidad,
       0
     );
-
 
   return (
 
@@ -324,7 +309,7 @@ const [carrito, setCarrito] =
       <header
         style={{
           background: 'hsl(146, 88%, 23%)',
-          padding: '5px',
+          padding: '10px',
           boxShadow:
             '0 2px 8px rgba(0,0,0,0.08)',
           position: 'sticky',
@@ -335,50 +320,52 @@ const [carrito, setCarrito] =
 
         <div
           style={{
-            maxWidth: '1400px',
+            maxWidth: '900px',
             margin: '0 auto',
             display: 'flex',
             justifyContent:
               'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            gap: '10px'
           }}
         >
 
           <div>
 
-  <h1
-    style={{
-      margin: 0,
-      fontSize: '36px',
-      color: '#d7fae4',
-      lineHeight: 1.1
-    }}
-  >
+            <h1
+              style={{
+                margin: 0,
+                fontSize: '36px',
+                color: '#c4ffc3',
+                lineHeight: 1
+              }}
+            >
 
-    {
-      configuracion?.nombreTienda ||
-      'Mi Tienda'
-    }
+              {
+                configuracion?.nombreTienda ||
+                'Mi Tienda'
+              }
 
-  </h1>
+            </h1>
 
-  <p
-    style={{
-      margin: '4px 0 0 0',
-      fontSize: '16px',
-      color: '#d1fae5',
-      fontWeight: '500'
-    }}
-  >
+            <p
+              style={{
+                margin: '4px 0 0 0',
+                fontSize: '14px',
+                color: '#d1fae5'
+              }}
+            >
 
-    {
-      configuracion?.descripcionTienda ||
-      'Tu descripción aquí'
-    }
+              {
+                configuracion?.descripcionTienda ||
+                'Tu descripción aquí'
+              }
 
-  </p>
+            </p>
 
-</div>
+          </div>
+
+          {/* CARRITO */}
 
           <Link
             href="/cart"
@@ -389,22 +376,23 @@ const [carrito, setCarrito] =
 
             <button
               style={{
-                background: '#45d178',
+                background: '#f97316',
                 color: '#ffffff',
                 border: 'none',
-                padding: '12px 12px',
-                borderRadius: '8px',
+                padding: '14px 18px',
+                borderRadius: '14px',
                 fontWeight: 'bold',
                 cursor: 'pointer',
-                fontSize: '16px'
+                fontSize: '16px',
+                whiteSpace: 'nowrap',
+                boxShadow:
+                  '0 4px 10px rgba(0,0,0,0.15)'
               }}
             >
 
               Mi carrito
-              {' '}
-              (
+              {': '}
               {cantidadCarrito}
-              )
 
             </button>
 
@@ -414,14 +402,13 @@ const [carrito, setCarrito] =
 
       </header>
 
-
       {/* CONTENIDO */}
 
       <div
         style={{
-          maxWidth: '1400px',
+          maxWidth: '900px',
           margin: '0 auto',
-          padding: '20px'
+          padding: '10px'
         }}
       >
 
@@ -436,7 +423,8 @@ const [carrito, setCarrito] =
                 <h2
                   style={{
                     marginBottom: '10px',
-                    color: '#111827'
+                    color: '#111827',
+                    fontSize: '20px'
                   }}
                 >
 
@@ -448,7 +436,7 @@ const [carrito, setCarrito] =
                   style={{
                     display: 'grid',
                     gridTemplateColumns:
-                      'repeat(auto-fit, minmax(240px, 1fr))',
+                      '1fr 1fr',
                     gap: '10px'
                   }}
                 >
@@ -476,17 +464,19 @@ const [carrito, setCarrito] =
                               '#6ec4b5',
                             border: 'none',
                             borderRadius:
-                              '5px',
+                              '12px',
                             padding:
-                              '20px 20px',
+                              '20px 10px',
                             cursor:
                               'pointer',
                             boxShadow:
-                              '0 4px 14px rgba(0,0,0,0.08)',
+                              '0 2px 8px rgba(0,0,0,0.08)',
                             fontSize:
-                              '28px',
+                              '18px',
                             fontWeight:
-                              'bold'
+                              'bold',
+                            color:
+                              '#111827'
                           }}
                         >
 
@@ -517,15 +507,15 @@ const [carrito, setCarrito] =
                     alignItems: 'center',
                     marginBottom:
                       '12px',
-                    flexWrap: 'wrap',
-                    gap: '15px'
+                    gap: '10px'
                   }}
                 >
 
                   <h2
                     style={{
-                      margin: 5,
-                      color: '#111827'
+                      margin: 0,
+                      color: '#111827',
+                      fontSize: '22px'
                     }}
                   >
 
@@ -549,267 +539,310 @@ const [carrito, setCarrito] =
                         '#ffffff',
                       border: 'none',
                       padding:
-                        '12px 18px',
+                        '8px 12px',
                       borderRadius:
                         '8px',
                       cursor:
                         'pointer',
                       fontWeight:
-                        'bold'
+                        'bold',
+                      fontSize:
+                        '12px'
                     }}
                   >
 
-                    Volver a categorías
+                    Volver
 
                   </button>
 
                 </div>
 
+                {/* PRODUCTOS */}
+
                 <div
                   style={{
                     display: 'grid',
                     gridTemplateColumns:
-                      'repeat(auto-fill, minmax(280px, 1fr))',
-                    gap: '25px'
+                      '1fr',
+                    gap: '10px'
                   }}
                 >
 
                   {
 
                     productosFiltrados.map(
-  producto => (
-
-    <div
-      key={producto._id}
+                      producto => (
 
-      style={{
-        background: '#ffffff',
-        borderRadius: '10px',
-        padding: '10px',
-        boxShadow:
-          '0 4px 14px rgba(0,0,0,0.08)'
-      }}
-    >
+                        <div
+                          key={producto._id}
 
-      <h2
-        style={{
-          marginTop: 0,
-          marginBottom: '8px',
-          color: '#111827'
-        }}
-      >
+                          style={{
+                            background:
+                              '#ffffff',
 
-        {producto.nombre}
+                            borderRadius:
+                              '14px',
 
-      </h2>
+                            padding:
+                              '12px',
 
-      <div
-        style={{
-          display: 'flex',
-          gap: '10px',
-          alignItems: 'flex-start',
-          flexWrap: 'wrap'
-        }}
-      >
-
-        {/* IMAGEN */}
-
-        <div
-          style={{
-            width: '120px',
-            flexShrink: 0
-          }}
-        >
+                            boxShadow:
+                              '0 2px 10px rgba(0,0,0,0.06)'
+                          }}
+                        >
 
-          <img
-            src={
-              producto.foto &&
-              producto.foto !== ''
-
-                ? producto.foto
-
-                : '/placeholder-producto.jpg'
-            }
-
-            alt={producto.nombre}
+                          {/* NOMBRE */}
 
-            style={{
-              width: '100%',
-              height: '180px',
-              objectFit: 'cover',
-              borderRadius: '5px'
-            }}
-          />
+                          <h2
+                            style={{
+                              margin: 0,
+                              marginBottom: '10px',
 
-        </div>
+                              fontSize:
+                                '20px',
 
-        {/* VARIANTES */}
+                              lineHeight:
+                                1.1,
 
-        <div
-          style={{
-            flex: 1,
-            minWidth: '160px'
-          }}
-        >
+                              color:
+                                '#111827'
+                            }}
+                          >
 
-          {
+                            {producto.nombre}
 
-            producto.variantes.map(
-              variante => {
+                          </h2>
 
-                const stockDisponible =
+                          {/* CONTENIDO */}
 
-                  calcularStockDisponible(
-                    producto,
-                    variante
-                  );
+                          <div
+                            style={{
+                              display: 'flex',
+                              gap: '12px',
+                              alignItems: 'flex-start'
+                            }}
+                          >
 
-                return (
+                            {/* IMAGEN */}
 
-                  <div
-                    key={variante._id}
+                            <div
+                              style={{
+                                width: '105px',
+                                flexShrink: 0
+                              }}
+                            >
 
-                    style={{
-                      border:
-                        '1px solid #d1d5db',
+                              <img
+                                src={
+                                  producto.foto &&
+                                  producto.foto !== ''
 
-                      borderRadius:
-                        '1px',
+                                    ? producto.foto
 
-                      padding:
-                        '1px',
+                                    : '/placeholder-producto.jpg'
+                                }
 
-                      marginBottom:
-                        '10px',
+                                alt={producto.nombre}
 
-                      display: 'flex',
+                                style={{
+                                  width: '105px',
+                                  height: '105px',
+                                  objectFit: 'cover',
+                                  borderRadius: '12px'
+                                }}
+                              />
 
-                      justifyContent:
-                        'space-between',
+                            </div>
 
-                      alignItems:
-                        'center',
+                            {/* VARIANTES */}
 
-                      gap: '10px',
+                            <div
+                              style={{
+                                flex: 1,
 
-                      flexWrap:
-                        'wrap'
-                    }}
-                  >
+                                display: 'flex',
 
-                    <div
-  style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    justifyContent: 'space-between',
-    width: '140px',
-  }}
->
+                                flexDirection:
+                                  'column',
 
-  <span
-    style={{
-      fontSize: '16px',
-      fontWeight: 'bold',
-      color: '#111827'
-    }}
-  >
+                                gap: '8px'
+                              }}
+                            >
 
-    {variante.peso}
+                              {
 
-  </span>
+                                producto.variantes.map(
+                                  variante => {
 
-  <span
-    style={{
-      fontSize: '24px',
-      fontWeight: 'bold',
-      color: '#c20326'
-    }}
-  >
+                                    const stockDisponible =
 
-    $
-    {variante.precio}
+                                      calcularStockDisponible(
+                                        producto,
+                                        variante
+                                      );
 
-  </span>
+                                    return (
 
-</div>
+                                      <div
+                                        key={variante._id}
 
-                    <button
+                                        style={{
+                                          border:
+                                            '1px solid #e5e7eb',
 
-                      disabled={
-                        stockDisponible <= 0
-                      }
+                                          borderRadius:
+                                            '10px',
 
-                      onClick={() =>
-                        agregarAlCarrito(
-                          producto,
-                          variante
-                        )
-                      }
+                                          padding:
+                                            '8px',
 
-                      style={{
+                                          display: 'flex',
 
-                        background:
-                          stockDisponible <= 0
+                                          justifyContent:
+                                            'space-between',
 
-                            ? '#9ca3af'
+                                          alignItems:
+                                            'center',
 
-                            : '#68ba86',
+                                          gap: '10px'
+                                        }}
+                                      >
 
-                        color:
-                          '#ffffff',
+                                        {/* INFO */}
 
-                        border:
-                          'none',
+                                        <div
+                                          style={{
+                                            display: 'flex',
+                                            flexDirection:
+                                              'column'
+                                          }}
+                                        >
 
-                        padding:
-                          '10px 18px',
+                                          <span
+                                            style={{
+                                              fontSize: '14px',
+                                              fontWeight: '600',
+                                              color: '#111827'
+                                            }}
+                                          >
 
-                        borderRadius:
-                          '8px',
+                                            {variante.peso}
 
-                        cursor:
-                          stockDisponible <= 0
+                                          </span>
 
-                            ? 'not-allowed'
+                                          <span
+                                            style={{
+                                              fontSize: '20px',
+                                              fontWeight: 'bold',
+                                              color: '#c20326',
+                                              lineHeight: 1.1
+                                            }}
+                                          >
 
-                            : 'pointer',
+                                            $
+                                            {variante.precio}
 
-                        fontWeight:
-                          'bold',
+                                          </span>
 
-                        fontSize:
-                          '15px',
+                                        </div>
 
-                        minWidth:
-                          '150px'
-                      }}
-                    >
+                                        {/* BOTON */}
 
-                      {
+                                        <button
 
-                        stockDisponible <= 0
+                                          disabled={
+                                            stockDisponible <= 0
+                                          }
 
-                          ? 'Sin stock'
+                                          onClick={() =>
+                                            agregarAlCarrito(
+                                              producto,
+                                              variante
+                                            )
+                                          }
 
-                          : 'Agregar al carrito'
-                      }
+                                          style={{
 
-                    </button>
+                                            background:
+                                              stockDisponible <= 0
 
-                  </div>
-                );
-              }
-            )
-          }
+                                                ? '#9ca3af'
 
-        </div>
+                                                : '#05ab52',
 
-      </div>
+                                            color:
+                                              '#ffffff',
 
-    </div>
-  )
-)
+                                            border:
+                                              'none',
+
+                                            padding:
+                                              '10px 14px',
+
+                                            borderRadius:
+                                              '10px',
+
+                                            cursor:
+                                              stockDisponible <= 0
+
+                                                ? 'not-allowed'
+
+                                                : 'pointer',
+
+                                            fontWeight:
+                                              'bold',
+
+                                            fontSize:
+                                              '14px',
+
+                                            display:
+                                              'flex',
+
+                                            alignItems:
+                                              'center',
+
+                                            gap:
+                                              '6px',
+
+                                            whiteSpace:
+                                              'nowrap',
+
+                                            minWidth:
+                                              '110px',
+
+                                            justifyContent:
+                                              'center'
+                                          }}
+                                        >
+
+                                          {
+
+                                            stockDisponible <= 0
+
+                                              ? 'Sin stock'
+
+                                              : (
+                                                <>
+                                                  Agregar al carrito
+                                                </>
+                                              )
+                                          }
+
+                                        </button>
+
+                                      </div>
+                                    );
+                                  }
+                                )
+                              }
+
+                            </div>
+
+                          </div>
+
+                        </div>
+                      )
+                    )
                   }
 
                 </div>

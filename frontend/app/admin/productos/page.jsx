@@ -1,49 +1,31 @@
 'use client';
 
-import {
-  useEffect,
-  useState
-} from 'react';
-
-import {
-  useRouter
-} from 'next/navigation';
-
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export default function AdminProductos() {
 
-  const router =
-    useRouter();
+  const router = useRouter();
 
-  const [productos,
-    setProductos] =
-    useState([]);
+  const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
 
-  const [categorias,
-    setCategorias] =
-    useState([]);
+  const [filtroCategoria, setFiltroCategoria] =
+    useState('todas');
 
-  const [editandoId,
-    setEditandoId] =
+  const [editandoId, setEditandoId] =
     useState(null);
 
-  const [formulario,
-    setFormulario] =
+  const [formulario, setFormulario] =
     useState({
 
       nombre: '',
-
       foto: '',
-
       categoria: '',
-
       descripcion: '',
-
       tipoStock: 'unidad',
-
       stockGranelKg: 0,
-
       variantes: []
 
     });
@@ -65,7 +47,6 @@ export default function AdminProductos() {
     }
 
     obtenerProductos();
-
     obtenerCategorias();
 
   }, []);
@@ -119,11 +100,8 @@ export default function AdminProductos() {
         {
 
           peso: '',
-
           precio: '',
-
           stock: '',
-
           equivalenciaKg: ''
 
         }
@@ -176,6 +154,8 @@ export default function AdminProductos() {
 
     const file =
       e.target.files[0];
+
+    if (!file) return;
 
     const formData =
       new FormData();
@@ -260,17 +240,11 @@ export default function AdminProductos() {
     setFormulario({
 
       nombre: '',
-
       foto: '',
-
       categoria: '',
-
       descripcion: '',
-
       tipoStock: 'unidad',
-
       stockGranelKg: 0,
-
       variantes: []
 
     });
@@ -302,362 +276,377 @@ export default function AdminProductos() {
     obtenerProductos();
   }
 
+  const productosFiltrados =
+
+    filtroCategoria === 'todas'
+
+      ? productos
+
+      : productos.filter(
+          p =>
+            p.categoria?._id ===
+            filtroCategoria
+        );
+
   return (
 
-    <main style={{
-      padding: 30,
-      fontFamily: 'Arial',
-      background: '#f7f7f7'
-    }}>
+    <main style={styles.main}>
 
-      <h1>
-        Administración Productos
-      </h1>
+      <div style={styles.container}>
 
-      <div style={{
-        background: 'white',
-        padding: 20,
-        borderRadius: 12,
-        marginBottom: 30
-      }}>
+        <h1 style={styles.title}>
+          Administración Productos
+        </h1>
 
-        <input
-          name="nombre"
-          placeholder="Nombre"
-          value={formulario.nombre}
-          onChange={handleChange}
-          style={inputStyle}
-        />
+        {/* FORMULARIO */}
 
-        <select
-          name="categoria"
-          value={formulario.categoria}
-          onChange={handleChange}
-          style={inputStyle}
-        >
+        <div style={styles.card}>
 
-          <option value="">
-            Seleccionar categoría
-          </option>
+          <div style={styles.grid2}>
 
-          {categorias.map(c => (
+            <input
+              name="nombre"
+              placeholder="Nombre"
+              value={formulario.nombre}
+              onChange={handleChange}
+              style={styles.input}
+            />
 
-            <option
-              key={c._id}
-              value={c._id}
+            <select
+              name="categoria"
+              value={formulario.categoria}
+              onChange={handleChange}
+              style={styles.input}
             >
 
-              {c.nombre}
+              <option value="">
+                Categoría
+              </option>
 
-            </option>
+              {categorias.map(c => (
 
-          ))}
+                <option
+                  key={c._id}
+                  value={c._id}
+                >
+                  {c.nombre}
+                </option>
 
-        </select>
+              ))}
 
-        <textarea
-          name="descripcion"
-          placeholder="Descripción"
-          value={formulario.descripcion}
-          onChange={handleChange}
-          style={{
-            ...inputStyle,
-            minHeight: 100
-          }}
-        />
+            </select>
 
-        <select
-          name="tipoStock"
-          value={formulario.tipoStock}
-          onChange={handleChange}
-          style={inputStyle}
-        >
+          </div>
 
-          <option value="unidad">
-            Stock por unidad
-          </option>
-
-          <option value="granel">
-            Stock a granel
-          </option>
-
-        </select>
-
-        {formulario.tipoStock ===
-          'granel' && (
-
-          <input
-            name="stockGranelKg"
-            type="number"
-            placeholder="Stock total Kg"
-            value={
-              formulario.stockGranelKg
-            }
+          <textarea
+            name="descripcion"
+            placeholder="Descripción"
+            value={formulario.descripcion}
             onChange={handleChange}
-            style={inputStyle}
+            style={styles.textarea}
           />
 
-        )}
+          <div style={styles.grid3}>
 
-        <input
-          type="file"
-          onChange={subirImagen}
-          style={inputStyle}
-        />
+            <select
+              name="tipoStock"
+              value={formulario.tipoStock}
+              onChange={handleChange}
+              style={styles.input}
+            >
 
-        {formulario.foto && (
+              <option value="unidad">
+                Unidad
+              </option>
 
-          <Image
-            src={formulario.foto}
-            alt="preview"
-            width={120}
-            height={120}
-            style={{
-              width: 120,
-              height: 120,
-              objectFit: 'cover',
-              borderRadius: 10
-            }}
-          />
+              <option value="granel">
+                Granel
+              </option>
 
-        )}
-
-        <hr style={{
-          margin: '20px 0'
-        }} />
-
-        <h2>
-          Variantes
-        </h2>
-
-        {formulario.variantes.map(
-          (v, index) => (
-
-          <div
-            key={index}
-            style={{
-              border: '1px solid #ddd',
-              padding: 15,
-              borderRadius: 10,
-              marginBottom: 15
-            }}
-          >
-
-            <input
-              placeholder="Peso"
-              value={v.peso}
-              onChange={(e) =>
-                actualizarVariante(
-                  index,
-                  'peso',
-                  e.target.value
-                )
-              }
-              style={inputStyle}
-            />
-
-            <input
-              type="number"
-              placeholder="Precio"
-              value={v.precio}
-              onChange={(e) =>
-                actualizarVariante(
-                  index,
-                  'precio',
-                  e.target.value
-                )
-              }
-              style={inputStyle}
-            />
+            </select>
 
             {formulario.tipoStock ===
-            'unidad' ? (
+              'granel' && (
 
               <input
+                name="stockGranelKg"
                 type="number"
-                placeholder="Stock"
-                value={v.stock}
-                onChange={(e) =>
-                  actualizarVariante(
-                    index,
-                    'stock',
-                    e.target.value
-                  )
-                }
-                style={inputStyle}
-              />
-
-            ) : (
-
-              <input
-                type="number"
-                step="0.01"
-                placeholder="Equivalencia Kg"
+                placeholder="Stock Kg"
                 value={
-                  v.equivalenciaKg
+                  formulario.stockGranelKg
                 }
-                onChange={(e) =>
-                  actualizarVariante(
-                    index,
-                    'equivalenciaKg',
-                    e.target.value
-                  )
-                }
-                style={inputStyle}
+                onChange={handleChange}
+                style={styles.input}
               />
 
             )}
 
+            <input
+              type="file"
+              onChange={subirImagen}
+              style={styles.input}
+            />
+
+          </div>
+
+          {formulario.foto && (
+
+            <Image
+              src={formulario.foto}
+              alt="preview"
+              width={70}
+              height={70}
+              style={styles.preview}
+            />
+
+          )}
+
+          {/* VARIANTES */}
+
+          <div style={styles.variantesHeader}>
+
+            <h3 style={{
+              margin: 0
+            }}>
+              Variantes
+            </h3>
+
             <button
-              onClick={() =>
-                eliminarVariante(index)
-              }
-              style={{
-                background: '#ff4d4d',
-                color: 'white',
-                border: 'none',
-                padding: 10,
-                borderRadius: 8
-              }}
+              onClick={agregarVariante}
+              style={styles.addButton}
             >
-
-              Eliminar variante
-
+              + Variante
             </button>
 
           </div>
 
-        ))}
+          {formulario.variantes.map(
+            (v, index) => (
 
-        <button
-          onClick={agregarVariante}
-          style={{
-            background: '#2196F3',
-            color: 'white',
-            border: 'none',
-            padding: 12,
-            borderRadius: 10,
-            marginBottom: 20
-          }}
-        >
+            <div
+              key={index}
+              style={styles.varianteRow}
+            >
 
-          Agregar variante
+              <input
+                placeholder="Peso"
+                value={v.peso}
+                onChange={(e) =>
+                  actualizarVariante(
+                    index,
+                    'peso',
+                    e.target.value
+                  )
+                }
+                style={styles.smallInput}
+              />
 
-        </button>
+              <input
+                type="number"
+                placeholder="Precio"
+                value={v.precio}
+                onChange={(e) =>
+                  actualizarVariante(
+                    index,
+                    'precio',
+                    e.target.value
+                  )
+                }
+                style={styles.smallInput}
+              />
 
-        <button
-          onClick={guardarProducto}
-          style={{
-            width: '100%',
-            background: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            padding: 16,
-            borderRadius: 10,
-            fontSize: 16
-          }}
-        >
+              {formulario.tipoStock ===
+              'unidad' ? (
 
-          {editandoId
-            ? 'Actualizar Producto'
-            : 'Guardar Producto'}
+                <input
+                  type="number"
+                  placeholder="Stock"
+                  value={v.stock}
+                  onChange={(e) =>
+                    actualizarVariante(
+                      index,
+                      'stock',
+                      e.target.value
+                    )
+                  }
+                  style={styles.smallInput}
+                />
 
-        </button>
+              ) : (
 
-      </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="Kg"
+                  value={
+                    v.equivalenciaKg
+                  }
+                  onChange={(e) =>
+                    actualizarVariante(
+                      index,
+                      'equivalenciaKg',
+                      e.target.value
+                    )
+                  }
+                  style={styles.smallInput}
+                />
 
-      <div style={{
-        display: 'grid',
-        gap: 20
-      }}>
+              )}
 
-        {productos.map(producto => (
+              <button
+                onClick={() =>
+                  eliminarVariante(index)
+                }
+                style={styles.deleteMini}
+              >
+                ✕
+              </button>
 
-          <div
-            key={producto._id}
-            style={{
-              background: 'white',
-              padding: 20,
-              borderRadius: 12
-            }}
+            </div>
+
+          ))}
+
+          <button
+            onClick={guardarProducto}
+            style={styles.saveButton}
           >
 
-            <div style={{
-              display: 'flex',
-              gap: 20
-            }}>
+            {editandoId
+              ? 'Actualizar Producto'
+              : 'Guardar Producto'}
+
+          </button>
+
+        </div>
+
+        {/* FILTRO */}
+
+        <div style={styles.filtrosBar}>
+
+          <select
+            value={filtroCategoria}
+            onChange={(e) =>
+              setFiltroCategoria(
+                e.target.value
+              )
+            }
+            style={styles.filtroSelect}
+          >
+
+            <option value="todas">
+              Todas las categorías
+            </option>
+
+            {categorias.map(c => (
+
+              <option
+                key={c._id}
+                value={c._id}
+              >
+                {c.nombre}
+              </option>
+
+            ))}
+
+          </select>
+
+          <span style={styles.totalProductos}>
+
+            {productosFiltrados.length}
+            {' '}
+            productos
+
+          </span>
+
+        </div>
+
+        {/* PRODUCTOS */}
+
+        <div style={styles.productosGrid}>
+
+          {productosFiltrados.map(producto => (
+
+            <div
+              key={producto._id}
+              style={styles.productoCard}
+            >
 
               <Image
                 src={producto.foto}
                 alt={producto.nombre}
-                width={100}
-                height={100}
-                style={{
-                  width: 100,
-                  height: 100,
-                  objectFit: 'cover',
-                  borderRadius: 10
-                }}
+                width={70}
+                height={70}
+                style={styles.productImage}
               />
 
               <div style={{
                 flex: 1
               }}>
 
-                <h2>
-                  {producto.nombre}
-                </h2>
+                <div style={styles.productTop}>
 
-                <p>
+                  <h3 style={styles.productName}>
+                    {producto.nombre}
+                  </h3>
+
+                  <span style={styles.badge}>
+                    {producto.tipoStock}
+                  </span>
+
+                </div>
+
+                <p style={styles.category}>
                   {
                     producto.categoria
                       ?.nombre
                   }
                 </p>
 
-                <p>
-                  Tipo:
-                  {' '}
-                  {producto.tipoStock}
-                </p>
-
                 {producto.tipoStock ===
                   'granel' && (
 
-                  <p>
+                  <p style={{
+                    fontSize: 12,
+                    color: '#777',
+                    marginTop: 4
+                  }}>
 
-                    Stock Kg:
+                    Stock:
                     {' '}
                     {
                       producto.stockGranelKg
                     }
+                    Kg
 
                   </p>
 
                 )}
 
-                <div>
+                <div style={
+                  styles.variantesCompactas
+                }>
 
                   {producto.variantes?.map(
                     (v, i) => (
 
-                    <div key={i}>
+                    <span
+                      key={i}
+                      style={
+                        styles.varianteBadge
+                      }
+                    >
 
-                      <p>
+                      {v.peso}
+                      {' · '}
+                      $
+                      {v.precio}
 
-                        {v.peso}
-                        {' - '}
-                        $
-                        {v.precio}
+                      {producto.tipoStock ===
+                      'unidad'
+                        ? ` · ${v.stock}`
+                        : ` · ${v.equivalenciaKg}Kg`}
 
-                        {producto.tipoStock ===
-                        'unidad'
-                          ? ` - Stock ${v.stock}`
-                          : ` - ${v.equivalenciaKg} Kg`}
-
-                      </p>
-
-                    </div>
+                    </span>
 
                   ))}
 
@@ -665,10 +654,7 @@ export default function AdminProductos() {
 
               </div>
 
-              <div style={{
-                display: 'flex',
-                gap: 10
-              }}>
+              <div style={styles.actions}>
 
                 <button
                   onClick={() => {
@@ -710,13 +696,7 @@ export default function AdminProductos() {
                     });
 
                   }}
-                  style={{
-                    background: '#2196F3',
-                    color: 'white',
-                    border: 'none',
-                    padding: 10,
-                    borderRadius: 8
-                  }}
+                  style={styles.editBtn}
                 >
 
                   Editar
@@ -729,13 +709,7 @@ export default function AdminProductos() {
                       producto._id
                     )
                   }
-                  style={{
-                    background: '#ff4d4d',
-                    color: 'white',
-                    border: 'none',
-                    padding: 10,
-                    borderRadius: 8
-                  }}
+                  style={styles.deleteBtn}
                 >
 
                   Eliminar
@@ -746,9 +720,9 @@ export default function AdminProductos() {
 
             </div>
 
-          </div>
+          ))}
 
-        ))}
+        </div>
 
       </div>
 
@@ -756,16 +730,231 @@ export default function AdminProductos() {
   );
 }
 
-const inputStyle = {
+const styles = {
 
-  width: '100%',
+  main: {
+    background: '#f4f5f7',
+    minHeight: '100vh',
+    padding: 20,
+    fontFamily: 'Arial'
+  },
 
-  padding: 12,
+  container: {
+    maxWidth: 1100,
+    margin: '0 auto'
+  },
 
-  marginBottom: 10,
+  title: {
+    marginBottom: 15,
+    fontSize: 28
+  },
 
-  borderRadius: 8,
+  card: {
+    background: '#fff',
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 20,
+    boxShadow:
+      '0 2px 10px rgba(0,0,0,0.05)'
+  },
 
-  border: '1px solid #ddd'
+  grid2: {
+    display: 'grid',
+    gridTemplateColumns:
+      '1fr 1fr',
+    gap: 10
+  },
+
+  grid3: {
+    display: 'grid',
+    gridTemplateColumns:
+      '1fr 1fr 1fr',
+    gap: 10,
+    marginTop: 10
+  },
+
+  input: {
+    width: '100%',
+    padding: 10,
+    borderRadius: 8,
+    border: '1px solid #ddd',
+    fontSize: 14
+  },
+
+  textarea: {
+    width: '100%',
+    minHeight: 80,
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 8,
+    border: '1px solid #ddd',
+    resize: 'vertical',
+    fontSize: 14
+  },
+
+  preview: {
+    marginTop: 10,
+    borderRadius: 10,
+    objectFit: 'cover'
+  },
+
+  variantesHeader: {
+    display: 'flex',
+    justifyContent:
+      'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 10
+  },
+
+  varianteRow: {
+    display: 'grid',
+    gridTemplateColumns:
+      '1fr 1fr 1fr 40px',
+    gap: 8,
+    marginBottom: 8
+  },
+
+  smallInput: {
+    padding: 8,
+    borderRadius: 8,
+    border: '1px solid #ddd',
+    fontSize: 13
+  },
+
+  addButton: {
+    background: '#2196F3',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: 8,
+    cursor: 'pointer'
+  },
+
+  deleteMini: {
+    background: '#ff4d4d',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 8,
+    cursor: 'pointer'
+  },
+
+  saveButton: {
+    width: '100%',
+    marginTop: 15,
+    background: '#4CAF50',
+    color: '#fff',
+    border: 'none',
+    padding: 12,
+    borderRadius: 10,
+    fontSize: 15,
+    cursor: 'pointer'
+  },
+
+  filtrosBar: {
+    display: 'flex',
+    justifyContent:
+      'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+    gap: 10
+  },
+
+  filtroSelect: {
+    padding: 10,
+    borderRadius: 8,
+    border: '1px solid #ddd',
+    background: '#fff',
+    minWidth: 220,
+    fontSize: 14
+  },
+
+  totalProductos: {
+    fontSize: 14,
+    color: '#666'
+  },
+
+  productosGrid: {
+    display: 'grid',
+    gap: 12
+  },
+
+  productoCard: {
+    background: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    display: 'flex',
+    gap: 12,
+    alignItems: 'center',
+    boxShadow:
+      '0 2px 10px rgba(0,0,0,0.04)'
+  },
+
+  productImage: {
+    borderRadius: 10,
+    objectFit: 'cover'
+  },
+
+  productTop: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10
+  },
+
+  productName: {
+    margin: 0,
+    fontSize: 18
+  },
+
+  category: {
+    margin: '4px 0',
+    color: '#666',
+    fontSize: 13
+  },
+
+  badge: {
+    background: '#eee',
+    padding: '4px 8px',
+    borderRadius: 999,
+    fontSize: 12
+  },
+
+  variantesCompactas: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8
+  },
+
+  varianteBadge: {
+    background: '#f1f1f1',
+    padding: '5px 8px',
+    borderRadius: 999,
+    fontSize: 12
+  },
+
+  actions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8
+  },
+
+  editBtn: {
+    background: '#2196F3',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: 8,
+    cursor: 'pointer'
+  },
+
+  deleteBtn: {
+    background: '#ff4d4d',
+    color: '#fff',
+    border: 'none',
+    padding: '8px 12px',
+    borderRadius: 8,
+    cursor: 'pointer'
+  }
 
 };
