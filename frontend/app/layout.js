@@ -1,7 +1,7 @@
 import { CartProvider } from '../context/CartContext';
 
 export const metadata = {
-  title: 'Me siento bien',
+  title: 'Tienda Superbien',
   description: 'Tienda online saludable'
 };
 
