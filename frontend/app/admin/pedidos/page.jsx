@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import {
   useEffect,
   useState
@@ -9,8 +11,7 @@ import {
   useRouter
 } from 'next/navigation';
 
-import * as XLSX
-  from 'xlsx';
+import * as XLSX from 'xlsx';
 
 import { saveAs }
   from 'file-saver';
@@ -24,9 +25,9 @@ export default function AdminPedidos() {
     setPedidos] =
     useState([]);
 
-const [productos,
-  setProductos] =
-  useState([]);
+  const [productos,
+    setProductos] =
+    useState([]);
 
   const [busqueda,
     setBusqueda] =
@@ -54,6 +55,7 @@ const [productos,
 
     obtenerPedidos();
     obtenerProductos();
+
   }, []);
 
   async function obtenerPedidos() {
@@ -68,17 +70,20 @@ const [productos,
     setPedidos(data);
   }
 
-async function obtenerProductos() {
+  async function obtenerProductos() {
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/productos`
-  );
+const res = await fetch(
+  `${process.env.NEXT_PUBLIC_API_URL}/api/productos`,
+  {
+    cache: 'no-store'
+  }
+);
 
-  const data =
-    await res.json();
+    const data =
+      await res.json();
 
-  setProductos(data);
-}
+    setProductos(data);
+  }
 
   async function cambiarEstado(
     id,
@@ -90,19 +95,17 @@ async function obtenerProductos() {
       `${process.env.NEXT_PUBLIC_API_URL}/api/pedidos/${id}`,
 
       {
-
         method: 'PUT',
 
         headers: {
-
           'Content-Type':
             'application/json'
-
         },
 
-body: JSON.stringify({
-  estado: nuevoEstado
-})
+        body: JSON.stringify({
+          estado: nuevoEstado
+        })
+
       }
 
     );
@@ -115,13 +118,13 @@ body: JSON.stringify({
 
       const coincideBusqueda =
 
-    String(
-       pedido.cliente || ''
-      )
-    .toLowerCase()
-    .includes(
-      busqueda.toLowerCase()
-     )
+        String(
+          pedido.cliente || ''
+        )
+          .toLowerCase()
+          .includes(
+            busqueda.toLowerCase()
+          )
 
         ||
 
@@ -142,212 +145,213 @@ body: JSON.stringify({
 
     });
 
-function exportarExcel() {
+  function exportarExcel() {
 
-  const resumenPedidos =
+    const resumenPedidos =
 
-    pedidosFiltrados.map(
-      pedido => ({
+      pedidosFiltrados.map(
+        pedido => ({
 
-      Fecha:
-        formatearFecha(
-          pedido.fecha
-        ),
+          Fecha:
+            formatearFecha(
+              pedido.fecha
+            ),
 
-      Cliente:
-        pedido.cliente,
+          Cliente:
+            pedido.cliente,
 
-      Telefono:
-        pedido.telefono,
+          Telefono:
+            pedido.telefono,
 
-      Entrega:
-        pedido.tipoEntrega,
+          Entrega:
+            pedido.tipoEntrega,
 
-      Direccion:
-        pedido.direccion || '',
+          Direccion:
+            pedido.direccion || '',
 
-      Estado:
-        pedido.estado,
+          Estado:
+            pedido.estado,
 
-      Total:
-        pedido.total
+          Total:
+            pedido.total
 
-    }));
+        }));
 
-  const detalleProductos =
-    [];
+    const detalleProductos =
+      [];
 
-  pedidosFiltrados.forEach(
-    pedido => {
+    pedidosFiltrados.forEach(
+      pedido => {
 
-    pedido.items?.forEach(
-      item => {
+        pedido.items?.forEach(
+          item => {
 
-      detalleProductos.push({
+            detalleProductos.push({
 
-        Fecha:
-          formatearFecha(
-            pedido.fecha
-          ),
+              Fecha:
+                formatearFecha(
+                  pedido.fecha
+                ),
 
-        Cliente:
-          pedido.cliente,
+              Cliente:
+                pedido.cliente,
 
-        Producto:
-          item.nombre,
+              Producto:
+                item.nombre,
 
-        Variante:
-          item.peso,
+              Variante:
+                item.peso,
 
-        Cantidad:
-          item.cantidad,
+              Cantidad:
+                item.cantidad,
 
-        Precio:
-          item.precio,
+              Precio:
+                item.precio,
 
-        Subtotal:
+              Subtotal:
 
-  Number(item.precio) *
+                Number(item.precio) *
 
-  Number(item.cantidad)
+                Number(item.cantidad)
 
-      });
+            });
 
-    });
-
-  });
-
-const stockProductos =
-  [];
-
-productos.forEach(
-  producto => {
-
-  if (
-    producto.tipoStock ===
-    'granel'
-  ) {
-
-    stockProductos.push({
-
-      Producto:
-        producto.nombre,
-
-      Tipo:
-        'Granel',
-
-      Variante:
-        '-',
-
-      Stock:
-        `${producto.stockGranelKg} Kg`
-
-    });
-
-  } else {
-
-    producto.variantes
-      ?.forEach(v => {
-
-      stockProductos.push({
-
-        Producto:
-          producto.nombre,
-
-        Tipo:
-          'Unidad',
-
-        Variante:
-          v.peso,
-
-        Stock:
-          v.stock
+          });
 
       });
 
-    });
+    const stockProductos =
+      [];
 
-  }
+    productos.forEach(
+      producto => {
 
-});
+        if (
+          producto.tipoStock ===
+          'granel'
+        ) {
 
-  const workbook =
-    XLSX.utils.book_new();
+          stockProductos.push({
 
-  const sheetPedidos =
+            Producto:
+              producto.nombre,
 
-    XLSX.utils.json_to_sheet(
-      resumenPedidos
-    );
+            Tipo:
+              'Granel',
 
-  const sheetProductos =
+            Variante:
+              '-',
 
-    XLSX.utils.json_to_sheet(
-      detalleProductos
-    );
-   const sheetStock =
+            Stock:
+              `${producto.stockGranelKg} Kg`
 
-     XLSX.utils.json_to_sheet(
-      stockProductos
-    );
+          });
 
-  XLSX.utils.book_append_sheet(
+        } else {
 
-    workbook,
+          producto.variantes
+            ?.forEach(v => {
 
-    sheetPedidos,
+              stockProductos.push({
 
-    'Pedidos'
+                Producto:
+                  producto.nombre,
 
-  );
+                Tipo:
+                  'Unidad',
 
-  XLSX.utils.book_append_sheet(
+                Variante:
+                  v.peso,
 
-    workbook,
+                Stock:
+                  v.stock
 
-    sheetProductos,
+              });
 
-    'Productos'
+            });
 
-  );
+        }
 
-XLSX.utils.book_append_sheet(
+      });
 
-  workbook,
+    const workbook =
+      XLSX.utils.book_new();
 
-  sheetStock,
+    const sheetPedidos =
 
-  'Stock'
+      XLSX.utils.json_to_sheet(
+        resumenPedidos
+      );
 
-);
+    const sheetProductos =
 
-  const excelBuffer =
+      XLSX.utils.json_to_sheet(
+        detalleProductos
+      );
 
-    XLSX.write(
+    const sheetStock =
+
+      XLSX.utils.json_to_sheet(
+        stockProductos
+      );
+
+    XLSX.utils.book_append_sheet(
+
       workbook,
-      {
-        bookType: 'xlsx',
-        type: 'array'
-      }
-    );
 
-  const data =
-    new Blob(
+      sheetPedidos,
 
-      [excelBuffer],
-
-      {
-        type:
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      }
+      'Pedidos'
 
     );
 
-  saveAs(
-    data,
-    'pedidos.xlsx'
-  );
-}
+    XLSX.utils.book_append_sheet(
+
+      workbook,
+
+      sheetProductos,
+
+      'Productos'
+
+    );
+
+    XLSX.utils.book_append_sheet(
+
+      workbook,
+
+      sheetStock,
+
+      'Stock'
+
+    );
+
+    const excelBuffer =
+
+      XLSX.write(
+        workbook,
+        {
+          bookType: 'xlsx',
+          type: 'array'
+        }
+      );
+
+    const data =
+      new Blob(
+
+        [excelBuffer],
+
+        {
+          type:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }
+
+      );
+
+    saveAs(
+      data,
+      'pedidos.xlsx'
+    );
+  }
 
   function formatearFecha(
     fecha
@@ -385,60 +389,58 @@ XLSX.utils.book_append_sheet(
   return (
 
     <main style={{
-      padding: 30,
+      padding: 20,
       fontFamily: 'Arial',
       background: '#f7f7f7',
       minHeight: '100vh'
     }}>
+
+      {/* HEADER */}
 
       <div style={{
         display: 'flex',
         justifyContent:
           'space-between',
         alignItems: 'center',
-        marginBottom: 30
+        marginBottom: 20,
+        flexWrap: 'wrap',
+        gap: 10
       }}>
 
-<div style={{
-  display: 'flex',
-  justifyContent:
-    'space-between',
-  alignItems: 'center',
-  width: '100%'
-}}>
+        <h1 style={{
+          margin: 0
+        }}>
+          Pedidos
+        </h1>
 
-  <h1>
-    Administración Pedidos
-  </h1>
+        <button
+          onClick={exportarExcel}
+          style={{
+            background: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            padding: '10px 18px',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
 
-  <button
-    onClick={exportarExcel}
-    style={{
-      background: '#4CAF50',
-      color: 'white',
-      border: 'none',
-      padding: '12px 20px',
-      borderRadius: 10,
-      cursor: 'pointer',
-      fontWeight: 'bold'
-    }}
-  >
+          Exportar Excel
 
-    Exportar Excel
-
-  </button>
-
-</div>
+        </button>
 
       </div>
 
+      {/* FILTROS */}
+
       <div style={{
         background: 'white',
-        padding: 20,
-        borderRadius: 12,
-        marginBottom: 30,
+        padding: 16,
+        borderRadius: 10,
+        marginBottom: 20,
         display: 'flex',
-        gap: 15,
+        gap: 12,
         flexWrap: 'wrap'
       }}>
 
@@ -487,309 +489,307 @@ XLSX.utils.book_append_sheet(
 
       </div>
 
+      {/* LISTADO */}
+
       <div style={{
         display: 'grid',
-        gap: 20
+        gap: 14
       }}>
 
-        {pedidosFiltrados.map(
-          pedido => (
+        {pedidosFiltrados.map((pedido) => {
 
-          <div
-            key={pedido._id}
-            style={{
-              background: 'white',
-              borderRadius: 12,
-              padding: 25,
-              boxShadow:
-                '0 2px 8px rgba(0,0,0,0.08)'
-            }}
-          >
+          const subtotal =
+            pedido.items?.reduce(
+              (acc, item) =>
+                acc +
+                (
+                  Number(item.precio) *
+                  Number(item.cantidad)
+                ),
+              0
+            );
 
-            <div style={{
-              display: 'flex',
-              justifyContent:
-                'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 15
-            }}>
+          return (
 
-              <div>
+            <div
+              key={pedido._id}
+              style={{
+                background: 'white',
+                borderRadius: 10,
+                padding: 16,
+                boxShadow:
+                  '0 1px 4px rgba(0,0,0,0.08)'
+              }}
+            >
 
-               <div style={{
-  display: 'flex',
-  alignItems: 'center',
-  gap: 10,
-  flexWrap: 'wrap'
-}}>
+              {/* CABECERA */}
 
-  <h2 style={{
-    margin: 0
-  }}>
-    {pedido.cliente}
-  </h2>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 10,
+                flexWrap: 'wrap',
+                marginBottom: 10
+              }}>
 
-  <span style={{
-    background: '#16a34a',
-    color: 'white',
-    padding: '4px 10px',
-    borderRadius: 20,
-    fontSize: 14,
-    fontWeight: 'bold'
-  }}>
+                <div>
 
-    Pedido #{pedido.nropedido}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    flexWrap: 'wrap'
+                  }}>
 
-  </span>
+                    <strong style={{
+                      fontSize: 18
+                    }}>
+                      {pedido.cliente}
+                    </strong>
 
-</div>
+                    <span style={{
+                      background: '#16a34a',
+                      color: 'white',
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      fontSize: 12,
+                      fontWeight: 'bold'
+                    }}>
 
-                <p>
-                  📞 {pedido.telefono}
-                </p>
+                      #{pedido.nropedido}
 
-                <p>
+                    </span>
 
-                  🕒
-                  {' '}
-                  {
-                    formatearFecha(
-                      pedido.fecha
-                    )
-                  }
+                  </div>
 
-                </p>
+                  <div style={{
+                    fontSize: 13,
+                    color: '#555',
+                    marginTop: 4,
+                    display: 'flex',
+                    gap: 12,
+                    flexWrap: 'wrap'
+                  }}>
 
-                <p>
+                    <span>
+                      📞 {pedido.telefono}
+                    </span>
 
-                  🚚
-                  {' '}
-                  {
-                    pedido.tipoEntrega
-                  }
+                    <span>
+                      🕒 {formatearFecha(pedido.fecha)}
+                    </span>
 
-                </p>
+                    <span>
+                      🚚 {pedido.tipoEntrega}
+                    </span>
 
-                {pedido.direccion && (
+                  </div>
 
-                  <p>
+                  {pedido.direccion && (
 
-                    📍
-                    {' '}
-                    {
-                      pedido.direccion
-                    }
+                    <div style={{
+                      fontSize: 13,
+                      color: '#666',
+                      marginTop: 4
+                    }}>
+                      📍 {pedido.direccion}
+                    </div>
 
-                  </p>
+                  )}
 
-                )}
+                </div>
+
+                <div style={{
+                  textAlign: 'right'
+                }}>
+
+                  <div style={{
+                    background:
+                      colorEstado(
+                        pedido.estado
+                      ),
+                    color: 'white',
+                    padding: '5px 10px',
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 'bold',
+                    marginBottom: 6
+                  }}>
+
+                    {pedido.estado}
+
+                  </div>
+
+                  <div style={{
+                    fontSize: 22,
+                    fontWeight: 'bold'
+                  }}>
+
+                    $
+                    {pedido.total?.toFixed(2)}
+
+                  </div>
+
+                </div>
 
               </div>
 
+              {/* PRODUCTOS */}
+
               <div style={{
-                textAlign: 'right'
+                borderTop: '1px solid #eee',
+                paddingTop: 10
               }}>
 
                 <div style={{
-                  background:
-                    colorEstado(
-                      pedido.estado
-                    ),
-                  color: 'white',
-                  padding:
-                    '10px 16px',
-                  borderRadius: 20,
+                  fontSize: 13,
                   fontWeight: 'bold',
-                  marginBottom: 10
+                  marginBottom: 8
                 }}>
 
-                  {pedido.estado}
+                  Subtotal:
+                  {' '}
+                  ${subtotal}
 
                 </div>
 
-                <h2>
+                <div style={{
+                  display: 'grid',
+                  gap: 6
+                }}>
 
-                  $
-                  {pedido.total
-                    ?.toFixed(2)}
+                  {pedido.items?.map(
+                    (item, index) => (
 
-                </h2>
+                      <div
+                        key={index}
+                        style={{
+                          background: '#f5f5f5',
+                          borderRadius: 8,
+                          padding: '8px 10px',
+                          fontSize: 13,
+                          display: 'flex',
+                          justifyContent:
+                            'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: 10
+                        }}
+                      >
+
+                        <div>
+
+                          <strong>
+                            {item.nombre}
+                          </strong>
+
+                          <div style={{
+                            color: '#666',
+                            marginTop: 2
+                          }}>
+
+                            {item.peso}
+                            {' • '}
+                            x{item.cantidad}
+
+                          </div>
+
+                        </div>
+
+                        <div style={{
+                          fontWeight: 'bold'
+                        }}>
+
+                          $
+                          {
+                            Number(item.precio) *
+                            Number(item.cantidad)
+                          }
+
+                        </div>
+
+                      </div>
+
+                    ))}
+
+                </div>
+
+              </div>
+
+              {/* BOTONES */}
+
+              <div style={{
+                display: 'flex',
+                gap: 8,
+                flexWrap: 'wrap',
+                marginTop: 14
+              }}>
+
+                <button
+                  onClick={() =>
+                    cambiarEstado(
+                      pedido._id,
+                      'Pedido entregado'
+                    )
+                  }
+                  style={{
+                    ...botonEstado,
+                    background: '#4CAF50',
+                    padding: '8px 12px',
+                    fontSize: 12
+                  }}
+                >
+
+                  Entregado
+
+                </button>
+
+                <button
+                  onClick={() =>
+                    cambiarEstado(
+                      pedido._id,
+                      'Proceso finalizado'
+                    )
+                  }
+                  style={{
+                    ...botonEstado,
+                    background: '#777',
+                    padding: '8px 12px',
+                    fontSize: 12
+                  }}
+                >
+
+                  Finalizar
+
+                </button>
+
+                <button
+                  onClick={() =>
+                    cambiarEstado(
+                      pedido._id,
+                      'Cancelado'
+                    )
+                  }
+                  style={{
+                    ...botonEstado,
+                    background: '#ff4d4d',
+                    padding: '8px 12px',
+                    fontSize: 12
+                  }}
+                >
+
+                  Cancelar
+
+                </button>
 
               </div>
 
             </div>
 
-            <hr style={{
-              margin: '20px 0'
-            }} />
+          );
 
-            <h3>
-              Productos
-            </h3>
-
-<p
-  style={{
-    fontWeight: 'bold',
-    marginBottom: '20px'
-  }}
->
-
-  Subtotal pedido:
-  {' '}
-
-  $
-
-  {
-
-    pedido.items?.reduce(
-
-      (acc, item) =>
-
-        acc +
-
-        (
-          Number(item.precio) *
-
-          Number(item.cantidad)
-        ),
-
-      0
-    )
-  }
-
-</p>
-
-            <div style={{
-              display: 'grid',
-              gap: 10
-            }}>
-
-              {pedido.items?.map(
-                (item, index) => (
-
-                <div
-                  key={index}
-                  style={{
-                    background: '#f9f9f9',
-                    padding: 15,
-                    borderRadius: 10
-                  }}
-                >
-
-                  <strong>
-                    {item.nombre}
-                  </strong>
-
-                  <p>
-                    Variante:
-                    {' '}
-                    {item.peso}
-                  </p>
-
-                  <p>
-
-                    Cantidad:
-                    {' '}
-                    {item.cantidad}
-
-                  </p>
-
-                  <p>
-
-                    Precio:
-                    {' '}
-                    $
-                    {item.precio}
-
-                  </p>
-
-                  <p>
-
-  Subtotal:
-  {' '}
-
-  $
-
-  {
-
-    Number(item.precio) *
-
-    Number(item.cantidad)
-  }
-
-</p>
-
-                </div>
-
-              ))}
-
-            </div>
-
-            <div style={{
-              display: 'flex',
-              gap: 10,
-              flexWrap: 'wrap',
-              marginTop: 25
-            }}>
-
-
-              <button
-                onClick={() =>
-                  cambiarEstado(
-                    pedido._id,
-                    'Pedido entregado'
-                  )
-                }
-                style={{
-                  ...botonEstado,
-                  background: '#4CAF50'
-                }}
-              >
-
-                Pedido entregado
-
-              </button>
-
-              <button
-                onClick={() =>
-                  cambiarEstado(
-                    pedido._id,
-                    'Proceso finalizado'
-                  )
-                }
-                style={{
-                  ...botonEstado,
-                  background: '#777'
-                }}
-              >
-
-                Finalizar
-
-              </button>
-
-              <button
-                onClick={() =>
-                  cambiarEstado(
-                    pedido._id,
-                    'Cancelado'
-                  )
-                }
-                style={{
-                  ...botonEstado,
-                  background: '#ff4d4d'
-                }}
-              >
-
-                Cancelar
-
-              </button>
-
-            </div>
-
-          </div>
-
-        ))}
+        })}
 
       </div>
 
@@ -801,13 +801,15 @@ const inputStyle = {
 
   flex: 1,
 
-  minWidth: 250,
+  minWidth: 220,
 
-  padding: 14,
+  padding: 10,
 
-  borderRadius: 10,
+  borderRadius: 8,
 
-  border: '1px solid #ddd'
+  border: '1px solid #ddd',
+
+  fontSize: 14
 
 };
 
@@ -817,9 +819,7 @@ const botonEstado = {
 
   border: 'none',
 
-  padding: '12px 18px',
-
-  borderRadius: 10,
+  borderRadius: 8,
 
   cursor: 'pointer',
 

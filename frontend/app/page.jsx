@@ -1,5 +1,6 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -66,11 +67,12 @@ export default function HomePage() {
 
     try {
 
-      const res = await fetch(
-
-        `${process.env.NEXT_PUBLIC_API_URL}/api/productos`
-
-      );
+const res = await fetch(
+  `${process.env.NEXT_PUBLIC_API_URL}/api/productos`,
+  {
+    cache: 'no-store'
+  }
+);
 
       const data = await res.json();
 
