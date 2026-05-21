@@ -2,26 +2,34 @@ import { NextResponse } from 'next/server';
 
 import { ObjectId } from 'mongodb';
 
-import clientPromise from '../../../lib/mongodb';
+import clientPromise from '@/lib/mongodb';
 
 export async function POST(req) {
 
   try {
 
-    const body =
-      await req.json();
+    const body = await req.json();
 
-    const { carrito } =
-      body;
+    const {
+      productoId,
+      peso
+    } = body;
+
+    console.log('BODY:', body);
+
+    /* =========================
+       VALIDACIONES
+    ========================= */
 
     if (
-      !Array.isArray(carrito)
+      !productoId ||
+      !peso
     ) {
 
       return NextResponse.json(
         {
           error:
-            'Carrito inválido'
+            'Datos incompletos'
         },
         {
           status: 400
@@ -29,98 +37,145 @@ export async function POST(req) {
       );
     }
 
+    if (
+      !ObjectId.isValid(
+        productoId
+      )
+    ) {
+
+      return NextResponse.json(
+        {
+          error:
+            'Producto inválido'
+        },
+        {
+          status: 400
+        }
+      );
+    }
+
+    /* =========================
+       CONEXION DB
+    ========================= */
+
     const client =
       await clientPromise;
 
     const db =
       client.db('Tienda');
 
-    for (const item of carrito) {
+    /* =========================
+       BUSCAR PRODUCTO
+    ========================= */
 
-      const producto =
-        await db
-          .collection('productos')
-          .findOne({
-            _id:
-              new ObjectId(
-                item.productoId
-              )
-          });
+    const producto =
+      await db
+        .collection('productos')
+        .findOne({
+          _id:
+            new ObjectId(
+              productoId
+            )
+        });
 
-      if (!producto) {
+    if (!producto) {
 
-        return NextResponse.json(
-          {
-            error:
-              `Producto no encontrado`
-          },
-          {
-            status: 404
-          }
-        );
-      }
+      return NextResponse.json(
+        {
+          error:
+            'Producto no encontrado'
+        },
+        {
+          status: 404
+        }
+      );
+    }
 
-      const variante =
-        producto.variantes?.find(
-          v =>
-            v.peso === item.peso
-        );
+    /* =========================
+       BUSCAR VARIANTE
+    ========================= */
 
-      if (!variante) {
+    const variante =
+      producto.variantes?.find(
+        v =>
 
-        return NextResponse.json(
-          {
-            error:
-              `Variante no encontrada`
-          },
-          {
-            status: 404
-          }
-        );
-      }
+          v.peso
+            ?.toLowerCase()
+            .replace(/\s/g, '') ===
 
-      let stockDisponible = 0;
+          peso
+            ?.toLowerCase()
+            .replace(/\s/g, '')
+      );
 
-      /* =========================
-         STOCK GRANEL
-      ========================= */
+    if (!variante) {
+
+      return NextResponse.json(
+        {
+          error:
+            'Variante no encontrada'
+        },
+        {
+          status: 404
+        }
+      );
+    }
+
+    /* =========================
+       CALCULAR STOCK
+    ========================= */
+
+    let stockDisponible = 0;
+
+    if (
+      producto.tipoStock ===
+      'granel'
+    ) {
+
+      let kgNecesarios = 0;
+
+      const texto =
+        variante.peso
+          .toLowerCase()
+          .replace(/\s/g, '');
 
       if (
-        producto.tipoStock ===
-        'granel'
+        texto.includes('kg')
       ) {
 
-        let kgNecesarios = 0;
+        kgNecesarios =
+          Number(
+            texto.replace(
+              'kg',
+              ''
+            )
+          );
 
-        const texto =
-          variante.peso
-            .toLowerCase()
-            .replace(/\s/g, '');
+      } else if (
+        texto.includes('gr')
+      ) {
 
-        if (
-          texto.includes('kg')
-        ) {
+        kgNecesarios =
+          Number(
+            texto.replace(
+              'gr',
+              ''
+            )
+          ) / 1000;
 
-          kgNecesarios =
-            Number(
-              texto.replace(
-                'kg',
-                ''
-              )
-            );
+      } else {
 
-        } else if (
-          texto.includes('gr')
-        ) {
+        kgNecesarios =
+          Number(texto) / 1000;
+      }
 
-          kgNecesarios =
-            Number(
-              texto.replace(
-                'gr',
-                ''
-              )
-            ) / 1000;
-        }
+      if (
+        kgNecesarios <= 0
+      ) {
+
+        stockDisponible = 0;
+
+      } else {
 
         stockDisponible =
           Math.floor(
@@ -129,34 +184,22 @@ export async function POST(req) {
               producto.stockGranelKg || 0
             ) / kgNecesarios
           );
-
-      } else {
-
-        stockDisponible =
-          Number(
-            variante.stock || 0
-          );
       }
 
-      if (
-        Number(item.cantidad) >
-        stockDisponible
-      ) {
+    } else {
 
-        return NextResponse.json(
-          {
-            error:
-              `Sin stock para ${item.nombre}`
-          },
-          {
-            status: 400
-          }
+      stockDisponible =
+        Number(
+          variante.stock || 0
         );
-      }
     }
 
+    /* =========================
+       RESPUESTA
+    ========================= */
+
     return NextResponse.json({
-      ok: true
+      stock: stockDisponible
     });
 
   } catch (error) {
@@ -166,7 +209,7 @@ export async function POST(req) {
     return NextResponse.json(
       {
         error:
-          'Error verificando stock'
+          'Error obteniendo stock'
       },
       {
         status: 500

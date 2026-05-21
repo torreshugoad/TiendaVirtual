@@ -245,7 +245,7 @@ const res = await fetch(
     producto._id,
 
   productoId:
-    producto._id,
+    String(producto._id),
 
   nombre:
     producto.nombre,

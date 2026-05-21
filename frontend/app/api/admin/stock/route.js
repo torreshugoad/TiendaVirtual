@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { ObjectId } from 'mongodb';
 
-import clientPromise from '../../../../lib/mongodb';
+import clientPromise from '@/lib/mongodb';
 
 /* =========================
    GET

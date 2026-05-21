@@ -107,7 +107,7 @@ async function verificarStock() {
   try {
 
     const response = await fetch(
-      '/api/stock-producto',
+      '/api/verificar-stock',
       {
         method: 'POST',
         headers: {
