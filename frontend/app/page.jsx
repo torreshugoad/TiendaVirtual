@@ -240,12 +240,15 @@ const res = await fetch(
 
         ...carrito,
 
-        {
-          productoId:
-            producto._id,
+{
+  _id:
+    producto._id,
 
-          nombre:
-            producto.nombre,
+  productoId:
+    producto._id,
+
+  nombre:
+    producto.nombre,
 
           foto:
             producto.foto,

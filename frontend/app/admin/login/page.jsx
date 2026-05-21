@@ -29,7 +29,7 @@ export default function LoginPage() {
       );
 
       router.push(
-        '/admin/productos'
+        '/admin'
       );
 
     } else {

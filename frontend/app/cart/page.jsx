@@ -27,19 +27,45 @@ export default function CartPage() {
     );
   }
 
-  function aumentarCantidad(index) {
+async function aumentarCantidad(index) {
 
-    const nuevoCarrito = [
-      ...carrito
-    ];
+  try {
+
+    const nuevoCarrito = [...carrito];
 
     const item = nuevoCarrito[index];
+console.log(item);
 
-    const stockDisponible = Number(
-      item.stockDisponible ||
-      item.stock ||
-      9999
+    const response = await fetch(
+      '/api/stock-producto',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':
+            'application/json'
+        },
+        body: JSON.stringify({
+          productoId: item.productoId,
+          peso: item.peso
+        })
+      }
     );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+
+      alert(
+        data.error ||
+        'Error obteniendo stock'
+      );
+
+      return;
+    }
+
+    const stockDisponible =
+      Number(data.stock);
 
     if (
       Number(item.cantidad) >=
@@ -55,10 +81,70 @@ export default function CartPage() {
 
     item.cantidad += 1;
 
+    item.subtotal =
+      Number(item.precio) *
+      Number(item.cantidad);
+
+    item.stockDisponible =
+      stockDisponible;
+
     actualizarCarrito(
       nuevoCarrito
     );
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      'Error verificando stock'
+    );
   }
+}
+
+async function verificarStock() {
+
+  try {
+
+    const response = await fetch(
+      '/api/stock-producto',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':
+            'application/json'
+        },
+        body: JSON.stringify({
+          carrito
+        })
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+
+      alert(
+        data.error ||
+        'Error verificando stock'
+      );
+
+      return;
+    }
+
+    window.location.href =
+      '/checkout';
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      'Error verificando stock'
+    );
+  }
+}
 
   function disminuirCantidad(index) {
 
@@ -389,28 +475,27 @@ const total = carrito.reduce(
 
                 </h2>
 
-                <Link href="/checkout">
+<button
 
-                  <button
-                    style={{
-                      width: '100%',
-                      marginTop: '20px',
-                      background: '#16a34a',
-                      color: '#fff',
-                      border: 'none',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '16px'
-                    }}
-                  >
+  onClick={verificarStock}
 
-                    Finalizar compra
+  style={{
+    width: '100%',
+    marginTop: '20px',
+    background: '#16a34a',
+    color: '#fff',
+    border: 'none',
+    padding: '16px',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    fontSize: '16px'
+  }}
+>
 
-                  </button>
+  Finalizar compra
 
-                </Link>
+</button>
 
               </div>
 

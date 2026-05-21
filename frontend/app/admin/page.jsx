@@ -1,8 +1,20 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
+
+  const router = useRouter();
+
+  function logout() {
+
+    localStorage.removeItem(
+      'adminLogueado'
+    );
+
+    router.push('/admin/login');
+  }
 
   const cards = [
 
@@ -10,6 +22,13 @@ export default function AdminPage() {
       titulo: 'Dashboard',
       descripcion: 'Resumen general de la tienda',
       href: '/admin/dashboard',
+      color: '#2563eb'
+    },
+
+    {
+      titulo: 'Precios / Stock',
+      descripcion: 'Planilla productos y stock',
+      href: '/admin/stock',
       color: '#2563eb'
     },
 
@@ -41,12 +60,6 @@ export default function AdminPage() {
       color: '#dc2626'
     },
 
-    {
-      titulo: 'Configuración',
-      descripcion: 'Datos generales de la tienda',
-      href: '/admin/configuracion',
-      color: '#0891b2'
-    }
   ];
 
   return (
@@ -70,32 +83,64 @@ export default function AdminPage() {
 
         <div
           style={{
-            marginBottom: '40px'
+            marginBottom: '40px',
+            display: 'flex',
+            justifyContent:
+              'space-between',
+            alignItems: 'center',
+            gap: '20px',
+            flexWrap: 'wrap'
           }}
         >
 
-          <h1
+          <div>
+
+            <h1
+              style={{
+                fontSize: '42px',
+                marginBottom: '10px',
+                color: '#111827'
+              }}
+            >
+
+              Panel Administrador
+
+            </h1>
+
+            <p
+              style={{
+                color: '#6b7280',
+                fontSize: '18px'
+              }}
+            >
+
+              Gestión completa de la tienda online
+
+            </p>
+
+          </div>
+
+          {/* LOGOUT */}
+
+          <button
+
+            onClick={logout}
+
             style={{
-              fontSize: '42px',
-              marginBottom: '10px',
-              color: '#111827'
+              background: '#dc2626',
+              color: '#fff',
+              border: 'none',
+              padding: '14px 20px',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '16px'
             }}
           >
 
-            Panel Administrador
+            Logout
 
-          </h1>
-
-          <p
-            style={{
-              color: '#6b7280',
-              fontSize: '18px'
-            }}
-          >
-
-            Gestión completa de la tienda online
-
-          </p>
+          </button>
 
         </div>
 
