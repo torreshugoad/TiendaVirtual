@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -41,16 +40,12 @@ export default function HomePage() {
       return [];
     });
 
-  const [configuracion, setConfiguracion] =
-    useState(null);
+  const [cargandoProductos, setCargandoProductos] =
+    useState(false);
 
   useEffect(() => {
 
-    obtenerProductos();
-
     obtenerCategorias();
-
-    obtenerConfiguracion();
 
   }, []);
 
@@ -63,34 +58,16 @@ export default function HomePage() {
 
   }, [carrito]);
 
-  async function obtenerProductos() {
-
-    try {
-
-const res = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL}/api/productos`,
-  {
-    cache: 'no-store'
-  }
-);
-
-      const data = await res.json();
-
-      setProductos(data);
-
-    } catch (error) {
-
-      console.log(error);
-    }
-  }
-
   async function obtenerCategorias() {
 
     try {
 
       const res = await fetch(
 
-        `${process.env.NEXT_PUBLIC_API_URL}/api/categorias`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/categorias`,
+        {
+          cache: 'force-cache'
+        }
 
       );
 
@@ -111,24 +88,55 @@ const res = await fetch(
     }
   }
 
-  async function obtenerConfiguracion() {
+  async function obtenerProductos(
+    categoriaId
+  ) {
 
     try {
 
+      setCargandoProductos(true);
+
       const res = await fetch(
 
-        `${process.env.NEXT_PUBLIC_API_URL}/api/configuracion`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/productos?categoria=${categoriaId}`,
+        {
+          cache: 'no-store'
+        }
 
       );
 
       const data = await res.json();
 
-      setConfiguracion(data);
+      setProductos(
+
+        Array.isArray(data)
+
+          ? data
+
+          : []
+      );
 
     } catch (error) {
 
       console.log(error);
+
+    } finally {
+
+      setCargandoProductos(false);
     }
+  }
+
+  async function seleccionarCategoria(
+    categoria
+  ) {
+
+    setCategoriaSeleccionada(
+      categoria
+    );
+
+    await obtenerProductos(
+      categoria._id
+    );
   }
 
   function calcularStockDisponible(
@@ -240,15 +248,15 @@ const res = await fetch(
 
         ...carrito,
 
-{
-  _id:
-    producto._id,
+        {
+          _id:
+            producto._id,
 
-  productoId:
-    String(producto._id),
+          productoId:
+            String(producto._id),
 
-  nombre:
-    producto.nombre,
+          nombre:
+            producto.nombre,
 
           foto:
             producto.foto,
@@ -264,33 +272,6 @@ const res = await fetch(
       ]);
     }
   }
-
-  const productosFiltrados =
-
-    categoriaSeleccionada
-
-      ? productos.filter(
-          producto => {
-
-            if (
-              typeof producto.categoria ===
-              'object'
-            ) {
-
-              return (
-                producto.categoria?._id ===
-                categoriaSeleccionada._id
-              );
-            }
-
-            return (
-              producto.categoria ===
-              categoriaSeleccionada._id
-            );
-          }
-        )
-
-      : [];
 
   const cantidadCarrito =
 
@@ -346,10 +327,7 @@ const res = await fetch(
               }}
             >
 
-              {
-                configuracion?.nombreTienda ||
-                'Superbien'
-              }
+              Superbien
 
             </h1>
 
@@ -361,10 +339,7 @@ const res = await fetch(
               }}
             >
 
-              {
-                configuracion?.descripcionTienda ||
-                'Tienda de productos saludables'
-              }
+              Tienda de productos saludables
 
             </p>
 
@@ -459,7 +434,7 @@ const res = await fetch(
                           }
 
                           onClick={() =>
-                            setCategoriaSeleccionada(
+                            seleccionarCategoria(
                               categoria
                             )
                           }
@@ -531,11 +506,14 @@ const res = await fetch(
                   </h2>
 
                   <button
-                    onClick={() =>
+                    onClick={() => {
+
                       setCategoriaSeleccionada(
                         null
-                      )
-                    }
+                      );
+
+                      setProductos([]);
+                    }}
 
                     style={{
                       background:
@@ -562,295 +540,285 @@ const res = await fetch(
 
                 </div>
 
-                {/* PRODUCTOS */}
+                {
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns:
-                      '1fr',
-                    gap: '10px'
-                  }}
-                >
+                  cargandoProductos
 
-                  {
+                    ? (
 
-                    productosFiltrados.map(
-                      producto => (
+                      <p
+                        style={{
+                          textAlign: 'center',
+                          fontWeight: 'bold'
+                        }}
+                      >
 
-                        <div
-                          key={producto._id}
+                        Cargando productos...
 
-                          style={{
-                            background:
-                              '#ffffff',
+                      </p>
 
-                            borderRadius:
-                              '14px',
+                    )
 
-                            padding:
-                              '12px',
+                    : (
 
-                            boxShadow:
-                              '0 2px 10px rgba(0,0,0,0.06)'
-                          }}
-                        >
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns:
+                            '1fr',
+                          gap: '10px'
+                        }}
+                      >
 
-                          {/* NOMBRE */}
+                        {
 
-                          <h2
-                            style={{
-                              margin: 0,
-                              marginBottom: '10px',
+                          productos.map(
+                            producto => (
 
-                              fontSize:
-                                '20px',
-
-                              lineHeight:
-                                1.1,
-
-                              color:
-                                '#111827'
-                            }}
-                          >
-
-                            {producto.nombre}
-
-                          </h2>
-
-                          {/* CONTENIDO */}
-
-                          <div
-                            style={{
-                              display: 'flex',
-                              gap: '12px',
-                              alignItems: 'flex-start'
-                            }}
-                          >
-
-                            {/* IMAGEN */}
-
-                            <div
-                              style={{
-                                width: '105px',
-                                flexShrink: 0
-                              }}
-                            >
-
-                              <img
-                                src={
-                                  producto.foto &&
-                                  producto.foto !== ''
-
-                                    ? producto.foto
-
-                                    : '/placeholder-producto.jpg'
-                                }
-
-                                alt={producto.nombre}
+                              <div
+                                key={producto._id}
 
                                 style={{
-                                  width: '105px',
-                                  height: '105px',
-                                  objectFit: 'cover',
-                                  borderRadius: '12px'
+                                  background:
+                                    '#ffffff',
+
+                                  borderRadius:
+                                    '14px',
+
+                                  padding:
+                                    '12px',
+
+                                  boxShadow:
+                                    '0 2px 10px rgba(0,0,0,0.06)'
                                 }}
-                              />
+                              >
 
-                            </div>
+                                <h2
+                                  style={{
+                                    margin: 0,
+                                    marginBottom: '10px',
 
-                            {/* VARIANTES */}
+                                    fontSize:
+                                      '20px',
 
-                            <div
-                              style={{
-                                flex: 1,
+                                    lineHeight:
+                                      1.1,
 
-                                display: 'flex',
+                                    color:
+                                      '#111827'
+                                  }}
+                                >
 
-                                flexDirection:
-                                  'column',
+                                  {producto.nombre}
 
-                                gap: '8px'
-                              }}
-                            >
+                                </h2>
 
-                              {
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    gap: '12px',
+                                    alignItems: 'flex-start'
+                                  }}
+                                >
 
-                                producto.variantes.map(
-                                  variante => {
+                                  <div
+                                    style={{
+                                      width: '105px',
+                                      flexShrink: 0
+                                    }}
+                                  >
 
-                                    const stockDisponible =
+                                    <img
+                                      src={
+                                        producto.foto &&
+                                        producto.foto !== ''
 
-                                      calcularStockDisponible(
-                                        producto,
-                                        variante
-                                      );
+                                          ? producto.foto
 
-                                    return (
+                                          : '/placeholder-producto.jpg'
+                                      }
 
-                                      <div
-                                        key={variante._id}
+                                      alt={producto.nombre}
 
-                                        style={{
-                                          border:
-                                            '1px solid #e5e7eb',
+                                      style={{
+                                        width: '105px',
+                                        height: '105px',
+                                        objectFit: 'cover',
+                                        borderRadius: '12px'
+                                      }}
+                                    />
 
-                                          borderRadius:
-                                            '10px',
+                                  </div>
 
-                                          padding:
-                                            '8px',
+                                  <div
+                                    style={{
+                                      flex: 1,
 
-                                          display: 'flex',
+                                      display: 'flex',
 
-                                          justifyContent:
-                                            'space-between',
+                                      flexDirection:
+                                        'column',
 
-                                          alignItems:
-                                            'center',
+                                      gap: '8px'
+                                    }}
+                                  >
 
-                                          gap: '10px'
-                                        }}
-                                      >
+                                    {
 
-                                        {/* INFO */}
+                                      producto.variantes.map(
+                                        variante => {
 
-                                        <div
-                                          style={{
-                                            display: 'flex',
-                                            flexDirection:
-                                              'column'
-                                          }}
-                                        >
+                                          const stockDisponible =
 
-                                          <span
-                                            style={{
-                                              fontSize: '14px',
-                                              fontWeight: '600',
-                                              color: '#111827'
-                                            }}
-                                          >
-
-                                            {variante.peso}
-
-                                          </span>
-
-                                          <span
-                                            style={{
-                                              fontSize: '20px',
-                                              fontWeight: 'bold',
-                                              color: '#c20326',
-                                              lineHeight: 1.1
-                                            }}
-                                          >
-
-                                            $
-                                            {variante.precio}
-
-                                          </span>
-
-                                        </div>
-
-                                        {/* BOTON */}
-
-                                        <button
-
-                                          disabled={
-                                            stockDisponible <= 0
-                                          }
-
-                                          onClick={() =>
-                                            agregarAlCarrito(
+                                            calcularStockDisponible(
                                               producto,
                                               variante
-                                            )
-                                          }
+                                            );
 
-                                          style={{
+                                          return (
 
-                                            background:
-                                              stockDisponible <= 0
+                                            <div
+                                              key={variante._id}
 
-                                                ? '#9ca3af'
+                                              style={{
+                                                border:
+                                                  '1px solid #e5e7eb',
 
-                                                : '#05ab52',
+                                                borderRadius:
+                                                  '10px',
 
-                                            color:
-                                              '#ffffff',
+                                                padding:
+                                                  '8px',
 
-                                            border:
-                                              'none',
+                                                display: 'flex',
 
-                                            padding:
-                                              '10px 14px',
+                                                justifyContent:
+                                                  'space-between',
 
-                                            borderRadius:
-                                              '10px',
+                                                alignItems:
+                                                  'center',
 
-                                            cursor:
-                                              stockDisponible <= 0
+                                                gap: '10px'
+                                              }}
+                                            >
 
-                                                ? 'not-allowed'
+                                              <div
+                                                style={{
+                                                  display: 'flex',
+                                                  flexDirection:
+                                                    'column'
+                                                }}
+                                              >
 
-                                                : 'pointer',
+                                                <span
+                                                  style={{
+                                                    fontSize: '14px',
+                                                    fontWeight: '600',
+                                                    color: '#111827'
+                                                  }}
+                                                >
 
-                                            fontWeight:
-                                              'bold',
+                                                  {variante.peso}
 
-                                            fontSize:
-                                              '14px',
+                                                </span>
 
-                                            display:
-                                              'flex',
+                                                <span
+                                                  style={{
+                                                    fontSize: '20px',
+                                                    fontWeight: 'bold',
+                                                    color: '#c20326',
+                                                    lineHeight: 1.1
+                                                  }}
+                                                >
 
-                                            alignItems:
-                                              'center',
+                                                  $
+                                                  {variante.precio}
 
-                                            gap:
-                                              '6px',
+                                                </span>
 
-                                            whiteSpace:
-                                              'nowrap',
+                                              </div>
 
-                                            minWidth:
-                                              '110px',
+                                              <button
 
-                                            justifyContent:
-                                              'center'
-                                          }}
-                                        >
+                                                disabled={
+                                                  stockDisponible <= 0
+                                                }
 
-                                          {
+                                                onClick={() =>
+                                                  agregarAlCarrito(
+                                                    producto,
+                                                    variante
+                                                  )
+                                                }
 
-                                            stockDisponible <= 0
+                                                style={{
 
-                                              ? 'Sin stock'
+                                                  background:
+                                                    stockDisponible <= 0
 
-                                              : (
-                                                <>
-                                                  Agregar al carrito
-                                                </>
-                                              )
-                                          }
+                                                      ? '#9ca3af'
 
-                                        </button>
+                                                      : '#05ab52',
 
-                                      </div>
-                                    );
-                                  }
-                                )
-                              }
+                                                  color:
+                                                    '#ffffff',
 
-                            </div>
+                                                  border:
+                                                    'none',
 
-                          </div>
+                                                  padding:
+                                                    '10px 14px',
 
-                        </div>
-                      )
+                                                  borderRadius:
+                                                    '10px',
+
+                                                  cursor:
+                                                    stockDisponible <= 0
+
+                                                      ? 'not-allowed'
+
+                                                      : 'pointer',
+
+                                                  fontWeight:
+                                                    'bold',
+
+                                                  fontSize:
+                                                    '14px',
+
+                                                  whiteSpace:
+                                                    'nowrap'
+                                                }}
+                                              >
+
+                                                {
+
+                                                  stockDisponible <= 0
+
+                                                    ? 'Sin stock'
+
+                                                    : 'Agregar al carrito'
+                                                }
+
+                                              </button>
+
+                                            </div>
+                                          );
+                                        }
+                                      )
+                                    }
+
+                                  </div>
+
+                                </div>
+
+                              </div>
+                            )
+                          )
+                        }
+
+                      </div>
                     )
-                  }
-
-                </div>
+                }
 
               </>
 

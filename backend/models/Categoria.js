@@ -6,7 +6,8 @@ const categoriaSchema =
 
     nombre: {
       type: String,
-      required: true
+      required: true,
+      trim: true
     },
 
     imagen: {
@@ -21,15 +22,30 @@ const categoriaSchema =
 
     orden: {
       type: Number,
-      default: 0
+      default: 0,
+      index: true
     },
 
     activa: {
       type: Boolean,
-      default: true
+      default: true,
+      index: true
     }
 
+  }, {
+    timestamps: true
   });
+
+/*
+  Índice compuesto:
+  mejora búsquedas tipo:
+  find({ activa: true }).sort({ orden: 1 })
+*/
+
+categoriaSchema.index({
+  activa: 1,
+  orden: 1
+});
 
 module.exports =
   mongoose.model(
