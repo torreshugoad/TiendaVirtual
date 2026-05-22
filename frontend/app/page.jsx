@@ -348,7 +348,7 @@ const res = await fetch(
 
               {
                 configuracion?.nombreTienda ||
-                'Mi Tienda'
+                'Superbien'
               }
 
             </h1>
@@ -363,7 +363,7 @@ const res = await fetch(
 
               {
                 configuracion?.descripcionTienda ||
-                'Tu descripción aquí'
+                'Tienda de productos saludables'
               }
 
             </p>
