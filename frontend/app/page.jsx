@@ -36,10 +36,10 @@ export default function HomePage() {
   const configuracion = {
 
     nombreTienda:
-      'Mi Tienda',
+      'Superbien',
 
     descripcionTienda:
-      'Alimentos saludables'
+      'Tienda de productos saludables'
   };
 
   /* MOUNT */
