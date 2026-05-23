@@ -37,7 +37,7 @@ async function aumentarCantidad(index) {
 console.log(item);
 
     const response = await fetch(
-      '/api/stock-producto',
+  `${process.env.NEXT_PUBLIC_API_URL}/api/stock-producto`,
       {
         method: 'POST',
         headers: {
@@ -107,7 +107,7 @@ async function verificarStock() {
   try {
 
     const response = await fetch(
-      '/api/verificar-stock',
+  `${process.env.NEXT_PUBLIC_API_URL}/api/verificar-stock`,
       {
         method: 'POST',
         headers: {

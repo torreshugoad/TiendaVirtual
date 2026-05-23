@@ -38,9 +38,11 @@ export default function AdminStockPage() {
 
     try {
 
-      const response = await fetch(
-        '/api/admin/stock'
-      );
+const response = await fetch(
+
+  `${process.env.NEXT_PUBLIC_API_URL}/api/admin/stock`
+
+);
 
       const data =
         await response.json();
@@ -87,8 +89,9 @@ export default function AdminStockPage() {
 
       setGuardando(true);
 
-      const response = await fetch(
-        '/api/admin/stock',
+const response = await fetch(
+
+  `${process.env.NEXT_PUBLIC_API_URL}/api/admin/stock`,
         {
           method: 'PUT',
           headers: {

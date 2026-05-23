@@ -5,56 +5,153 @@ const router = express.Router();
 const Producto =
   require('../models/Producto');
 
+/* TODOS LOS PRODUCTOS */
+
 router.get('/',
 async (req, res) => {
 
-  const productos =
-    await Producto.find()
-      .populate('categoria');
+  try {
 
-  res.json(productos);
+    const productos =
+      await Producto.find()
+        .populate('categoria');
 
+    res.json(productos);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+      mensaje:
+        'Error al obtener productos'
+    });
+  }
 });
 
-router.post('/', async (req, res) => {
+/* PRODUCTOS POR CATEGORIA */
 
-  const producto =
-    new Producto(req.body);
+router.get(
+  '/categoria/:id',
 
-  await producto.save();
+  async (req, res) => {
 
-  res.json(producto);
+    try {
+
+      const productos =
+
+        await Producto.find({
+
+          categoria:
+            req.params.id
+
+        }).populate(
+          'categoria'
+        );
+
+      res.json(productos);
+
+    } catch (error) {
+
+      console.log(error);
+
+      res.status(500).json({
+
+        mensaje:
+          'Error al obtener productos'
+
+      });
+    }
+  }
+);
+
+/* CREAR PRODUCTO */
+
+router.post('/',
+async (req, res) => {
+
+  try {
+
+    const producto =
+      new Producto(req.body);
+
+    await producto.save();
+
+    res.json(producto);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+
+      mensaje:
+        'Error al crear producto'
+
+    });
+  }
 });
+
+/* ELIMINAR PRODUCTO */
 
 router.delete('/:id',
 async (req, res) => {
 
-  await Producto.findByIdAndDelete(
-    req.params.id
-  );
+  try {
 
-  res.json({
-    success: true
-  });
+    await Producto.findByIdAndDelete(
+      req.params.id
+    );
 
+    res.json({
+      success: true
+    });
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+
+      mensaje:
+        'Error al eliminar producto'
+
+    });
+  }
 });
+
+/* EDITAR PRODUCTO */
 
 router.put('/:id',
 async (req, res) => {
 
-  const producto =
-    await Producto.findByIdAndUpdate(
+  try {
 
-      req.params.id,
+    const producto =
 
-      req.body,
+      await Producto.findByIdAndUpdate(
 
-      { new: true }
+        req.params.id,
 
-    );
+        req.body,
 
-  res.json(producto);
+        { new: true }
 
+      );
+
+    res.json(producto);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+
+      mensaje:
+        'Error al editar producto'
+
+    });
+  }
 });
 
 module.exports = router;

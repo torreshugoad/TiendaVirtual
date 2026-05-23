@@ -160,30 +160,31 @@ export default function CheckoutPage() {
 
       setLoading(true);
 
-      // CREAR PEDIDO
+      const itemsPedido =
 
-const itemsPedido =
+        carrito.map(item => ({
 
-  carrito.map(item => ({
+          productoId:
+            item.productoId,
 
-    productoId:
-      item.productoId,
+          nombre:
+            item.nombre,
 
-    nombre:
-      item.nombre,
+          foto:
+            item.foto,
 
-    peso:
-      item.peso,
+          peso:
+            item.peso,
 
-    cantidad:
-      item.cantidad,
+          cantidad:
+            item.cantidad,
 
-    precio:
-      item.precio
+          precio:
+            item.precio
 
-  }));
+        }));
 
-      const pedido = {
+      const body = {
 
         cliente:
           nombre,
@@ -198,27 +199,16 @@ const itemsPedido =
           costoEnvio,
 
         items:
-          itemsPedido,
-
-        subtotal,
-
-        total:
-          totalFinal,
-
-        estado:
-          'Pedido pendiente',
-
-        fecha:
-          new Date()
+          itemsPedido
 
       };
 
-      // GUARDAR PEDIDO
+      /* CHECKOUT */
 
-      const resPedido =
+      const resCheckout =
         await fetch(
 
-          `${process.env.NEXT_PUBLIC_API_URL}/api/pedidos`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/checkout`,
 
           {
 
@@ -232,62 +222,26 @@ const itemsPedido =
             },
 
             body:
-              JSON.stringify(
-                pedido
-              )
+              JSON.stringify(body)
 
           }
 
         );
 
-      if (!resPedido.ok) {
+      const data =
+        await resCheckout.json();
+
+      if (!resCheckout.ok) {
 
         throw new Error(
-          'Error al guardar pedido'
+
+          data.mensaje ||
+
+          'Error en checkout'
         );
       }
 
-      const pedidoGuardado =
-        await resPedido.json();
-
-      // DESCONTAR STOCK
-
-      const resStock =
-        await fetch(
-
-          `${process.env.NEXT_PUBLIC_API_URL}/api/pedidos/descontar-stock`,
-
-          {
-
-            method: 'POST',
-
-            headers: {
-
-              'Content-Type':
-                'application/json'
-
-            },
-
-            body:
-              JSON.stringify({
-
-                items:
-                  carrito
-
-              })
-
-          }
-
-        );
-
-      if (!resStock.ok) {
-
-        throw new Error(
-          'Error al descontar stock'
-        );
-      }
-
-      // GENERAR MENSAJE WHATSAPP
+      /* WHATSAPP */
 
       const productosTexto =
 
@@ -304,11 +258,11 @@ ${item.peso} - Cant ${item.cantidad}: $${subtotalItem}`;
 
         }).join('\n');
 
-const mensaje =
+      const mensaje =
 
 `Hola, te paso mi pedido
 
-Pedido: #${pedidoGuardado.nropedido}
+Pedido: #${data.nropedido}
 Cliente: ${nombre}
 Teléfono: ${telefono}
 Entrega: ${
@@ -331,23 +285,7 @@ TOTAL: $${totalFinal}`;
             ''
           );
 
-      if (telefonoWhatsapp) {
-
-        const urlWhatsapp =
-
-  /Android|iPhone|iPad|iPod/i.test(
-    navigator.userAgent
-  )
-
-    ? `whatsapp://send?phone=${telefonoWhatsapp}&text=${encodeURIComponent(mensaje)}`
-
-    : `https://web.whatsapp.com/send?phone=${telefonoWhatsapp}&text=${encodeURIComponent(mensaje)}`;
-
-window.location.href =
-  urlWhatsapp;
-      }
-
-      // LIMPIAR CARRITO
+      /* LIMPIAR CARRITO */
 
       localStorage.removeItem(
         'carrito'
@@ -359,11 +297,31 @@ window.location.href =
         true
       );
 
+      /* ABRIR WHATSAPP */
+
+      if (telefonoWhatsapp) {
+
+        const urlWhatsapp =
+
+          /Android|iPhone|iPad|iPod/i.test(
+            navigator.userAgent
+          )
+
+            ? `whatsapp://send?phone=${telefonoWhatsapp}&text=${encodeURIComponent(mensaje)}`
+
+            : `https://web.whatsapp.com/send?phone=${telefonoWhatsapp}&text=${encodeURIComponent(mensaje)}`;
+
+        window.location.href =
+          urlWhatsapp;
+      }
+
     } catch (error) {
 
       console.log(error);
 
       alert(
+
+        error.message ||
 
         'Ocurrió un error al registrar el pedido'
 
@@ -375,7 +333,7 @@ window.location.href =
     }
   }
 
-  // PEDIDO CONFIRMADO
+  /* PEDIDO CONFIRMADO */
 
   if (pedidoConfirmado) {
 

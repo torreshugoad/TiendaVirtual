@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -17,72 +16,81 @@ export default function HomePage() {
     setCategoriaSeleccionada
   ] = useState(null);
 
-  const [carrito, setCarrito] =
-    useState(() => {
+  const [
+    cargandoProductos,
+    setCargandoProductos
+  ] = useState(false);
 
-      if (
-        typeof window !== 'undefined'
-      ) {
+  const [
+    carrito,
+    setCarrito
+  ] = useState([]);
 
-        const carritoGuardado =
+  const [
+    mounted,
+    setMounted
+  ] = useState(false);
 
-          localStorage.getItem(
-            'carrito'
-          );
+  /* CONFIGURACION FIJA */
 
-        if (carritoGuardado) {
+  const configuracion = {
 
-          return JSON.parse(
-            carritoGuardado
-          );
-        }
-      }
+    nombreTienda:
+      'Mi Tienda',
 
-      return [];
-    });
+    descripcionTienda:
+      'Alimentos saludables'
+  };
 
-  const [configuracion, setConfiguracion] =
-    useState(null);
+  /* MOUNT */
 
   useEffect(() => {
 
-    obtenerProductos();
-
-    obtenerCategorias();
-
-    obtenerConfiguracion();
+    setMounted(true);
 
   }, []);
 
+  /* CARGAR CATEGORIAS */
+
   useEffect(() => {
+
+    obtenerCategorias();
+
+  }, []);
+
+  /* CARGAR CARRITO */
+
+  useEffect(() => {
+
+    if (!mounted) return;
+
+    const carritoGuardado =
+
+      localStorage.getItem(
+        'carrito'
+      );
+
+    if (carritoGuardado) {
+
+      setCarrito(
+        JSON.parse(carritoGuardado)
+      );
+    }
+
+  }, [mounted]);
+
+  /* GUARDAR CARRITO */
+
+  useEffect(() => {
+
+    if (!mounted) return;
 
     localStorage.setItem(
       'carrito',
       JSON.stringify(carrito)
     );
 
-  }, [carrito]);
-
-  async function obtenerProductos() {
-
-    try {
-
-const res = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL}/api/productos`,
-  {
-    cache: 'no-store'
-  }
-);
-
-      const data = await res.json();
-
-      setProductos(data);
-
-    } catch (error) {
-
-      console.log(error);
-    }
-  }
+  }, [carrito, mounted]);
 
   async function obtenerCategorias() {
 
@@ -90,18 +98,20 @@ const res = await fetch(
 
       const res = await fetch(
 
-        `${process.env.NEXT_PUBLIC_API_URL}/api/categorias`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/categorias`,
+        {
+          cache: 'force-cache'
+        }
 
       );
 
-      const data = await res.json();
+      const data =
+        await res.json();
 
       setCategorias(
 
         Array.isArray(data)
-
           ? data
-
           : []
       );
 
@@ -111,24 +121,54 @@ const res = await fetch(
     }
   }
 
-  async function obtenerConfiguracion() {
+  async function seleccionarCategoria(
+    categoria
+  ) {
+
+    setCategoriaSeleccionada(
+      categoria
+    );
+
+    setCargandoProductos(true);
 
     try {
 
       const res = await fetch(
 
-        `${process.env.NEXT_PUBLIC_API_URL}/api/configuracion`
+`${process.env.NEXT_PUBLIC_API_URL}/api/productos/categoria/${categoria._id}`,
+        {
+          cache: 'no-store'
+        }
 
       );
 
-      const data = await res.json();
+      const data =
+        await res.json();
 
-      setConfiguracion(data);
+      setProductos(
+
+        Array.isArray(data)
+          ? data
+          : []
+      );
 
     } catch (error) {
 
       console.log(error);
+
+    } finally {
+
+      setCargandoProductos(false);
     }
+  }
+
+  function volverCategorias() {
+
+    setCategoriaSeleccionada(
+      null
+    );
+
+    setProductos([]);
   }
 
   function calcularStockDisponible(
@@ -158,7 +198,10 @@ const res = await fetch(
 
       kgNecesarios =
         Number(
-          texto.replace('kg', '')
+          texto.replace(
+            'kg',
+            ''
+          )
         );
 
     } else if (
@@ -166,8 +209,12 @@ const res = await fetch(
     ) {
 
       kgNecesarios =
+
         Number(
-          texto.replace('gr', '')
+          texto.replace(
+            'gr',
+            ''
+          )
         ) / 1000;
 
     } else {
@@ -232,7 +279,9 @@ const res = await fetch(
           return item;
         });
 
-      setCarrito(nuevoCarrito);
+      setCarrito(
+        nuevoCarrito
+      );
 
     } else {
 
@@ -240,15 +289,15 @@ const res = await fetch(
 
         ...carrito,
 
-{
-  _id:
-    producto._id,
+        {
+          _id:
+            producto._id,
 
-  productoId:
-    String(producto._id),
+          productoId:
+            String(producto._id),
 
-  nombre:
-    producto.nombre,
+          nombre:
+            producto.nombre,
 
           foto:
             producto.foto,
@@ -265,40 +314,17 @@ const res = await fetch(
     }
   }
 
-  const productosFiltrados =
-
-    categoriaSeleccionada
-
-      ? productos.filter(
-          producto => {
-
-            if (
-              typeof producto.categoria ===
-              'object'
-            ) {
-
-              return (
-                producto.categoria?._id ===
-                categoriaSeleccionada._id
-              );
-            }
-
-            return (
-              producto.categoria ===
-              categoriaSeleccionada._id
-            );
-          }
-        )
-
-      : [];
-
   const cantidadCarrito =
 
-    carrito.reduce(
-      (acc, item) =>
-        acc + item.cantidad,
-      0
-    );
+    mounted
+
+      ? carrito.reduce(
+          (acc, item) =>
+            acc + item.cantidad,
+          0
+        )
+
+      : 0;
 
   return (
 
@@ -313,12 +339,18 @@ const res = await fetch(
 
       <header
         style={{
-          background: 'hsl(146, 88%, 23%)',
+          background:
+            'hsl(146, 88%, 23%)',
+
           padding: '10px',
+
           boxShadow:
             '0 2px 8px rgba(0,0,0,0.08)',
+
           position: 'sticky',
+
           top: 0,
+
           zIndex: 100
         }}
       >
@@ -326,11 +358,16 @@ const res = await fetch(
         <div
           style={{
             maxWidth: '900px',
+
             margin: '0 auto',
+
             display: 'flex',
+
             justifyContent:
               'space-between',
+
             alignItems: 'center',
+
             gap: '10px'
           }}
         >
@@ -340,30 +377,36 @@ const res = await fetch(
             <h1
               style={{
                 margin: 0,
+
                 fontSize: '36px',
+
                 color: '#c4ffc3',
+
                 lineHeight: 1
               }}
             >
 
               {
-                configuracion?.nombreTienda ||
-                'Mi Tienda'
+                configuracion
+                  .nombreTienda
               }
 
             </h1>
 
             <p
               style={{
-                margin: '4px 0 0 0',
+                margin:
+                  '4px 0 0 0',
+
                 fontSize: '14px',
+
                 color: '#d1fae5'
               }}
             >
 
               {
-                configuracion?.descripcionTienda ||
-                'Tu descripción aquí'
+                configuracion
+                  .descripcionTienda
               }
 
             </p>
@@ -375,21 +418,40 @@ const res = await fetch(
           <Link
             href="/cart"
             style={{
-              textDecoration: 'none'
+              textDecoration:
+                'none'
             }}
           >
 
             <button
               style={{
-                background: '#f97316',
-                color: '#ffffff',
-                border: 'none',
-                padding: '14px 18px',
-                borderRadius: '14px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                fontSize: '16px',
-                whiteSpace: 'nowrap',
+                background:
+                  '#f97316',
+
+                color:
+                  '#ffffff',
+
+                border:
+                  'none',
+
+                padding:
+                  '14px 18px',
+
+                borderRadius:
+                  '14px',
+
+                fontWeight:
+                  'bold',
+
+                cursor:
+                  'pointer',
+
+                fontSize:
+                  '16px',
+
+                whiteSpace:
+                  'nowrap',
+
                 boxShadow:
                   '0 4px 10px rgba(0,0,0,0.15)'
               }}
@@ -412,7 +474,9 @@ const res = await fetch(
       <div
         style={{
           maxWidth: '900px',
+
           margin: '0 auto',
+
           padding: '10px'
         }}
       >
@@ -427,9 +491,14 @@ const res = await fetch(
 
                 <h2
                   style={{
-                    marginBottom: '10px',
-                    color: '#111827',
-                    fontSize: '20px'
+                    marginBottom:
+                      '10px',
+
+                    color:
+                      '#111827',
+
+                    fontSize:
+                      '20px'
                   }}
                 >
 
@@ -440,15 +509,15 @@ const res = await fetch(
                 <div
                   style={{
                     display: 'grid',
+
                     gridTemplateColumns:
                       '1fr 1fr',
+
                     gap: '10px'
                   }}
                 >
 
                   {
-
-                    Array.isArray(categorias) &&
 
                     categorias.map(
                       categoria => (
@@ -459,7 +528,7 @@ const res = await fetch(
                           }
 
                           onClick={() =>
-                            setCategoriaSeleccionada(
+                            seleccionarCategoria(
                               categoria
                             )
                           }
@@ -467,19 +536,28 @@ const res = await fetch(
                           style={{
                             background:
                               '#6ec4b5',
-                            border: 'none',
+
+                            border:
+                              'none',
+
                             borderRadius:
                               '12px',
+
                             padding:
                               '20px 10px',
+
                             cursor:
                               'pointer',
+
                             boxShadow:
                               '0 2px 8px rgba(0,0,0,0.08)',
+
                             fontSize:
                               '18px',
+
                             fontWeight:
                               'bold',
+
                             color:
                               '#111827'
                           }}
@@ -507,11 +585,16 @@ const res = await fetch(
                 <div
                   style={{
                     display: 'flex',
+
                     justifyContent:
                       'space-between',
-                    alignItems: 'center',
+
+                    alignItems:
+                      'center',
+
                     marginBottom:
                       '12px',
+
                     gap: '10px'
                   }}
                 >
@@ -519,38 +602,49 @@ const res = await fetch(
                   <h2
                     style={{
                       margin: 0,
-                      color: '#111827',
-                      fontSize: '22px'
+
+                      color:
+                        '#111827',
+
+                      fontSize:
+                        '22px'
                     }}
                   >
 
                     {
-                      categoriaSeleccionada.nombre
+                      categoriaSeleccionada
+                        .nombre
                     }
 
                   </h2>
 
                   <button
-                    onClick={() =>
-                      setCategoriaSeleccionada(
-                        null
-                      )
+                    onClick={
+                      volverCategorias
                     }
 
                     style={{
                       background:
                         '#111827',
+
                       color:
                         '#ffffff',
-                      border: 'none',
+
+                      border:
+                        'none',
+
                       padding:
                         '8px 12px',
+
                       borderRadius:
                         '8px',
+
                       cursor:
                         'pointer',
+
                       fontWeight:
                         'bold',
+
                       fontSize:
                         '12px'
                     }}
@@ -562,295 +656,345 @@ const res = await fetch(
 
                 </div>
 
-                {/* PRODUCTOS */}
+                {
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns:
-                      '1fr',
-                    gap: '10px'
-                  }}
-                >
+                  cargandoProductos
 
-                  {
+                    ? (
 
-                    productosFiltrados.map(
-                      producto => (
+                      <div
+                        style={{
+                          textAlign:
+                            'center',
 
-                        <div
-                          key={producto._id}
+                          padding:
+                            '30px',
 
-                          style={{
-                            background:
-                              '#ffffff',
+                          fontWeight:
+                            'bold',
 
-                            borderRadius:
-                              '14px',
+                          color:
+                            '#111827'
+                        }}
+                      >
 
-                            padding:
-                              '12px',
+                        Cargando productos...
 
-                            boxShadow:
-                              '0 2px 10px rgba(0,0,0,0.06)'
-                          }}
-                        >
+                      </div>
 
-                          {/* NOMBRE */}
+                    )
 
-                          <h2
-                            style={{
-                              margin: 0,
-                              marginBottom: '10px',
+                    : (
 
-                              fontSize:
-                                '20px',
+                      <div
+                        style={{
+                          display: 'grid',
 
-                              lineHeight:
-                                1.1,
+                          gridTemplateColumns:
+                            '1fr',
 
-                              color:
-                                '#111827'
-                            }}
-                          >
+                          gap: '10px'
+                        }}
+                      >
 
-                            {producto.nombre}
+                        {
 
-                          </h2>
+                          productos.map(
+                            producto => (
 
-                          {/* CONTENIDO */}
-
-                          <div
-                            style={{
-                              display: 'flex',
-                              gap: '12px',
-                              alignItems: 'flex-start'
-                            }}
-                          >
-
-                            {/* IMAGEN */}
-
-                            <div
-                              style={{
-                                width: '105px',
-                                flexShrink: 0
-                              }}
-                            >
-
-                              <img
-                                src={
-                                  producto.foto &&
-                                  producto.foto !== ''
-
-                                    ? producto.foto
-
-                                    : '/placeholder-producto.jpg'
+                              <div
+                                key={
+                                  producto._id
                                 }
 
-                                alt={producto.nombre}
-
                                 style={{
-                                  width: '105px',
-                                  height: '105px',
-                                  objectFit: 'cover',
-                                  borderRadius: '12px'
+                                  background:
+                                    '#ffffff',
+
+                                  borderRadius:
+                                    '14px',
+
+                                  padding:
+                                    '12px',
+
+                                  boxShadow:
+                                    '0 2px 10px rgba(0,0,0,0.06)'
                                 }}
-                              />
+                              >
 
-                            </div>
+                                <h2
+                                  style={{
+                                    margin: 0,
 
-                            {/* VARIANTES */}
+                                    marginBottom:
+                                      '10px',
 
-                            <div
-                              style={{
-                                flex: 1,
+                                    fontSize:
+                                      '20px',
 
-                                display: 'flex',
+                                    lineHeight:
+                                      1.1,
 
-                                flexDirection:
-                                  'column',
+                                    color:
+                                      '#111827'
+                                  }}
+                                >
 
-                                gap: '8px'
-                              }}
-                            >
+                                  {
+                                    producto.nombre
+                                  }
 
-                              {
+                                </h2>
 
-                                producto.variantes.map(
-                                  variante => {
+                                <div
+                                  style={{
+                                    display:
+                                      'flex',
 
-                                    const stockDisponible =
+                                    gap:
+                                      '12px',
 
-                                      calcularStockDisponible(
-                                        producto,
-                                        variante
-                                      );
+                                    alignItems:
+                                      'flex-start'
+                                  }}
+                                >
 
-                                    return (
+                                  <div
+                                    style={{
+                                      width:
+                                        '105px',
 
-                                      <div
-                                        key={variante._id}
+                                      flexShrink: 0
+                                    }}
+                                  >
 
-                                        style={{
-                                          border:
-                                            '1px solid #e5e7eb',
+                                    <img
+                                      src={
+                                        producto.foto &&
+                                        producto.foto !== ''
 
-                                          borderRadius:
-                                            '10px',
+                                          ? producto.foto
 
-                                          padding:
-                                            '8px',
+                                          : '/placeholder-producto.jpg'
+                                      }
 
-                                          display: 'flex',
+                                      alt={
+                                        producto.nombre
+                                      }
 
-                                          justifyContent:
-                                            'space-between',
+                                      style={{
+                                        width:
+                                          '105px',
 
-                                          alignItems:
-                                            'center',
+                                        height:
+                                          '105px',
 
-                                          gap: '10px'
-                                        }}
-                                      >
+                                        objectFit:
+                                          'cover',
 
-                                        {/* INFO */}
+                                        borderRadius:
+                                          '12px'
+                                      }}
+                                    />
 
-                                        <div
-                                          style={{
-                                            display: 'flex',
-                                            flexDirection:
-                                              'column'
-                                          }}
-                                        >
+                                  </div>
 
-                                          <span
-                                            style={{
-                                              fontSize: '14px',
-                                              fontWeight: '600',
-                                              color: '#111827'
-                                            }}
-                                          >
+                                  <div
+                                    style={{
+                                      flex: 1,
 
-                                            {variante.peso}
+                                      display:
+                                        'flex',
 
-                                          </span>
+                                      flexDirection:
+                                        'column',
 
-                                          <span
-                                            style={{
-                                              fontSize: '20px',
-                                              fontWeight: 'bold',
-                                              color: '#c20326',
-                                              lineHeight: 1.1
-                                            }}
-                                          >
+                                      gap:
+                                        '8px'
+                                    }}
+                                  >
 
-                                            $
-                                            {variante.precio}
+                                    {
 
-                                          </span>
+                                      producto.variantes.map(
+                                        variante => {
 
-                                        </div>
+                                          const stockDisponible =
 
-                                        {/* BOTON */}
-
-                                        <button
-
-                                          disabled={
-                                            stockDisponible <= 0
-                                          }
-
-                                          onClick={() =>
-                                            agregarAlCarrito(
+                                            calcularStockDisponible(
                                               producto,
                                               variante
-                                            )
-                                          }
+                                            );
 
-                                          style={{
+                                          return (
 
-                                            background:
-                                              stockDisponible <= 0
+                                            <div
+                                              key={
+                                                variante._id
+                                              }
 
-                                                ? '#9ca3af'
+                                              style={{
+                                                border:
+                                                  '1px solid #e5e7eb',
 
-                                                : '#05ab52',
+                                                borderRadius:
+                                                  '10px',
 
-                                            color:
-                                              '#ffffff',
+                                                padding:
+                                                  '8px',
 
-                                            border:
-                                              'none',
+                                                display:
+                                                  'flex',
 
-                                            padding:
-                                              '10px 14px',
+                                                justifyContent:
+                                                  'space-between',
 
-                                            borderRadius:
-                                              '10px',
+                                                alignItems:
+                                                  'center',
 
-                                            cursor:
-                                              stockDisponible <= 0
+                                                gap:
+                                                  '10px'
+                                              }}
+                                            >
 
-                                                ? 'not-allowed'
+                                              <div
+                                                style={{
+                                                  display:
+                                                    'flex',
 
-                                                : 'pointer',
+                                                  flexDirection:
+                                                    'column',
 
-                                            fontWeight:
-                                              'bold',
+                                                  minWidth:
+                                                    '90px'
+                                                }}
+                                              >
 
-                                            fontSize:
-                                              '14px',
+                                                <span
+                                                  style={{
+                                                    fontSize:
+                                                      '14px',
 
-                                            display:
-                                              'flex',
+                                                    fontWeight:
+                                                      '600',
 
-                                            alignItems:
-                                              'center',
+                                                    color:
+                                                      '#111827'
+                                                  }}
+                                                >
 
-                                            gap:
-                                              '6px',
+                                                  {
+                                                    variante.peso
+                                                  }
 
-                                            whiteSpace:
-                                              'nowrap',
+                                                </span>
 
-                                            minWidth:
-                                              '110px',
+                                                <span
+                                                  style={{
+                                                    fontSize:
+                                                      '20px',
 
-                                            justifyContent:
-                                              'center'
-                                          }}
-                                        >
+                                                    fontWeight:
+                                                      'bold',
 
-                                          {
+                                                    color:
+                                                      '#c20326',
 
-                                            stockDisponible <= 0
+                                                    lineHeight:
+                                                      1.1
+                                                  }}
+                                                >
 
-                                              ? 'Sin stock'
+                                                  $
+                                                  {
+                                                    variante.precio
+                                                  }
 
-                                              : (
-                                                <>
-                                                  Agregar al carrito
-                                                </>
-                                              )
-                                          }
+                                                </span>
 
-                                        </button>
+                                              </div>
 
-                                      </div>
-                                    );
-                                  }
-                                )
-                              }
+                                              <button
+                                                disabled={
+                                                  stockDisponible <= 0
+                                                }
 
-                            </div>
+                                                onClick={() =>
+                                                  agregarAlCarrito(
+                                                    producto,
+                                                    variante
+                                                  )
+                                                }
 
-                          </div>
+                                                style={{
+                                                  background:
+                                                    stockDisponible <= 0
+                                                      ? '#9ca3af'
+                                                      : '#05ab52',
 
-                        </div>
-                      )
+                                                  color:
+                                                    '#ffffff',
+
+                                                  border:
+                                                    'none',
+
+                                                  padding:
+                                                    '10px 14px',
+
+                                                  borderRadius:
+                                                    '10px',
+
+                                                  cursor:
+                                                    stockDisponible <= 0
+                                                      ? 'not-allowed'
+                                                      : 'pointer',
+
+                                                  fontWeight:
+                                                    'bold',
+
+                                                  fontSize:
+                                                    '14px',
+
+                                                  whiteSpace:
+                                                    'nowrap',
+
+                                                  minWidth:
+                                                    '170px',
+
+                                                  textAlign:
+                                                    'center'
+                                                }}
+                                              >
+
+                                                {
+
+                                                  stockDisponible <= 0
+
+                                                    ? 'Sin stock'
+
+                                                    : 'Agregar al carrito'
+                                                }
+
+                                              </button>
+
+                                            </div>
+                                          );
+                                        }
+                                      )
+                                    }
+
+                                  </div>
+
+                                </div>
+
+                              </div>
+                            )
+                          )
+                        }
+
+                      </div>
                     )
-                  }
-
-                </div>
+                }
 
               </>
 
