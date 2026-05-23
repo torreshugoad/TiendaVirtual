@@ -625,7 +625,7 @@ export default function HomePage() {
 
                     style={{
                       background:
-                        '#111827',
+                        '#a1212d',
 
                       color:
                         '#ffffff',
@@ -634,7 +634,7 @@ export default function HomePage() {
                         'none',
 
                       padding:
-                        '8px 12px',
+                        '8px 36px',
 
                       borderRadius:
                         '8px',
@@ -646,7 +646,7 @@ export default function HomePage() {
                         'bold',
 
                       fontSize:
-                        '12px'
+                        '16px'
                     }}
                   >
 
@@ -712,10 +712,10 @@ export default function HomePage() {
                                     '#ffffff',
 
                                   borderRadius:
-                                    '14px',
+                                    '8px',
 
                                   padding:
-                                    '12px',
+                                    '10px',
 
                                   boxShadow:
                                     '0 2px 10px rgba(0,0,0,0.06)'
@@ -727,16 +727,16 @@ export default function HomePage() {
                                     margin: 0,
 
                                     marginBottom:
-                                      '10px',
+                                      '5px',
 
                                     fontSize:
-                                      '20px',
+                                      '24px',
 
                                     lineHeight:
-                                      1.1,
+                                      1.0,
 
                                     color:
-                                      '#111827'
+                                      '#03240b'
                                   }}
                                 >
 
@@ -752,7 +752,7 @@ export default function HomePage() {
                                       'flex',
 
                                     gap:
-                                      '12px',
+                                      '8px',
 
                                     alignItems:
                                       'flex-start'
@@ -762,7 +762,7 @@ export default function HomePage() {
                                   <div
                                     style={{
                                       width:
-                                        '105px',
+                                        '100px',
 
                                       flexShrink: 0
                                     }}
@@ -784,16 +784,16 @@ export default function HomePage() {
 
                                       style={{
                                         width:
-                                          '105px',
+                                          '100px',
 
                                         height:
-                                          '105px',
+                                          '100px',
 
                                         objectFit:
                                           'cover',
 
                                         borderRadius:
-                                          '12px'
+                                          '5px'
                                       }}
                                     />
 
@@ -810,7 +810,7 @@ export default function HomePage() {
                                         'column',
 
                                       gap:
-                                        '8px'
+                                        '3px'
                                     }}
                                   >
 
@@ -835,13 +835,13 @@ export default function HomePage() {
 
                                               style={{
                                                 border:
-                                                  '1px solid #e5e7eb',
+                                                  '1px solid #025221',
 
                                                 borderRadius:
-                                                  '10px',
+                                                  '5px',
 
                                                 padding:
-                                                  '8px',
+                                                  '5px',
 
                                                 display:
                                                   'flex',
@@ -853,7 +853,7 @@ export default function HomePage() {
                                                   'center',
 
                                                 gap:
-                                                  '10px'
+                                                  '1px'
                                               }}
                                             >
 
@@ -866,7 +866,7 @@ export default function HomePage() {
                                                     'column',
 
                                                   minWidth:
-                                                    '90px'
+                                                    '60px'
                                                 }}
                                               >
 
@@ -959,7 +959,7 @@ export default function HomePage() {
                                                     'nowrap',
 
                                                   minWidth:
-                                                    '170px',
+                                                    '130px',
 
                                                   textAlign:
                                                     'center'

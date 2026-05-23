@@ -362,7 +362,7 @@ const response = await fetch(
             borderRadius: '5px',
             border:
               '1px solid #ccc',
-            width: '150px'
+            width: '50px'
           }}
         />
 
@@ -514,7 +514,7 @@ const response = await fetch(
                       'Sin stock';
 
                   } else if (
-                    stockReal <= 5
+                    stockReal <= 2
                   ) {
 
                     colorEstado =
@@ -548,7 +548,7 @@ const response = await fetch(
                         <td
                           colSpan={7}
                           style={{
-                            padding: '10px'
+                            padding: '5px'
                           }}
                         >
 
@@ -558,12 +558,12 @@ const response = await fetch(
                             style={{
                               display: 'grid',
                               gridTemplateColumns:
-                                '1.5fr 2fr 1fr 1fr 1fr',
-                              gap: '15px',
+                                '1.5fr 2fr 2fr 2fr 1.5fr',
+                              gap: '25px',
                               alignItems:
                                 'center',
                               marginBottom:
-                                '5px'
+                                '2px'
                             }}
                           >
 
@@ -631,7 +631,7 @@ const response = await fetch(
                                   background:
                                     colorEstado,
                                   padding:
-                                    '5px 10px',
+                                    '5px 20px',
                                   borderRadius:
                                     '999px',
                                   fontWeight:
@@ -670,7 +670,7 @@ const response = await fetch(
                                       display:
                                         'grid',
                                       gridTemplateColumns:
-                                        '2fr 1fr',
+                                        '2fr 1.2fr',
                                       gap:
                                         '5px',
                                       padding:
