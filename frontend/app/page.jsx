@@ -31,22 +31,35 @@ export default function HomePage() {
     setMounted
   ] = useState(false);
 
-  /* CONFIGURACION FIJA */
+  /* CONFIGURACION */
 
-  const configuracion = {
+  const [
+    configuracion,
+    setConfiguracion
+  ] = useState({
 
     nombreTienda:
       'Superbien',
 
     descripcionTienda:
-      'Tienda de productos saludables'
-  };
+      'Tienda de productos saludables',
+
+    notaHeader: ''
+  });
 
   /* MOUNT */
 
   useEffect(() => {
 
     setMounted(true);
+
+  }, []);
+
+  /* CARGAR CONFIGURACION */
+
+  useEffect(() => {
+
+    obtenerConfiguracion();
 
   }, []);
 
@@ -91,6 +104,52 @@ export default function HomePage() {
     );
 
   }, [carrito, mounted]);
+
+  async function obtenerConfiguracion() {
+
+    try {
+
+      const res = await fetch(
+
+        `${process.env.NEXT_PUBLIC_API_URL}/api/configuracion`,
+        {
+          cache: 'no-store'
+        }
+
+      );
+
+      const data =
+        await res.json();
+
+      const config =
+
+        Array.isArray(data)
+          ? data[0]
+          : data;
+
+      if (config) {
+
+        setConfiguracion({
+
+          nombreTienda:
+            config.nombreTienda ||
+            'Superbien',
+
+          descripcionTienda:
+            config.descripcionTienda ||
+            '',
+
+          notaHeader:
+            config.notaHeader ||
+            ''
+        });
+      }
+
+    } catch (error) {
+
+      console.log(error);
+    }
+  }
 
   async function obtenerCategorias() {
 
@@ -331,7 +390,9 @@ export default function HomePage() {
     <div
       style={{
         minHeight: '100vh',
-        background: '#ffedaa'
+        background: '#ffedaa',
+        fontFamily:
+          'Arial, sans-serif'
       }}
     >
 
@@ -378,6 +439,9 @@ export default function HomePage() {
               style={{
                 margin: 0,
 
+                fontFamily:
+                  'Montserrat, sans-serif',
+
                 fontSize: '36px',
 
                 color: '#c4ffc3',
@@ -400,7 +464,7 @@ export default function HomePage() {
 
                 fontSize: '14px',
 
-                color: '#d1fae5'
+                color: '#ffffff'
               }}
             >
 
@@ -426,7 +490,7 @@ export default function HomePage() {
             <button
               style={{
                 background:
-                  '#f97316',
+                  '#c2410c',
 
                 color:
                   '#ffffff',
@@ -467,11 +531,55 @@ export default function HomePage() {
 
         </div>
 
+        {
+
+          configuracion.notaHeader && (
+
+            <div
+              style={{
+                marginTop: '6px',
+
+                background: '#fff3cd',
+
+                color: '#856404',
+
+                padding: '6px',
+
+                borderRadius: '6px',
+
+                textAlign: 'center',
+
+                fontWeight: 'bold',
+
+                fontFamily:
+                  'Verdana, sans-serif',
+
+                fontSize: '13px',
+
+                maxWidth: '900px',
+
+                marginLeft: 'auto',
+
+                marginRight: 'auto',
+
+                boxShadow:
+                  '0 2px 8px rgba(0,0,0,0.10)'
+              }}
+            >
+
+              {
+                configuracion.notaHeader
+              }
+
+            </div>
+          )
+        }
+
       </header>
 
       {/* CONTENIDO */}
 
-      <div
+      <main
         style={{
           maxWidth: '900px',
 
@@ -625,7 +733,7 @@ export default function HomePage() {
 
                     style={{
                       background:
-                        '#a1212d',
+                        '#7f1d1d',
 
                       color:
                         '#ffffff',
@@ -929,8 +1037,8 @@ export default function HomePage() {
                                                 style={{
                                                   background:
                                                     stockDisponible <= 0
-                                                      ? '#9ca3af'
-                                                      : '#05ab52',
+                                                      ? '#6b7280'
+                                                      : '#047857',
 
                                                   color:
                                                     '#ffffff',
@@ -1001,7 +1109,7 @@ export default function HomePage() {
             )
         }
 
-      </div>
+      </main>
 
     </div>
   );
