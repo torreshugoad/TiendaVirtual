@@ -143,11 +143,13 @@ export default function HomePage() {
             config.notaHeader ||
             ''
         });
+      console.log('CONFIG:', config);
       }
 
     } catch (error) {
 
       console.log(error);
+
     }
   }
 
