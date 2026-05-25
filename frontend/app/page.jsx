@@ -525,8 +525,8 @@ export default function HomePage() {
             <div
               style={{
                 marginTop: '3px',
-                background: '#ffecec',
-                color: '#ff2020',
+                background: '#fff3cd',
+                color: '#856404',
                 padding: '5px',
                 borderRadius: '1px',
                 textAlign: 'center',
