@@ -31,22 +31,35 @@ export default function HomePage() {
     setMounted
   ] = useState(false);
 
-  /* CONFIGURACION FIJA */
+  /* CONFIGURACION */
 
-  const configuracion = {
+  const [
+    configuracion,
+    setConfiguracion
+  ] = useState({
 
     nombreTienda:
       'Superbien',
 
     descripcionTienda:
-      'Tienda de productos saludables'
-  };
+      'Tienda de productos saludables',
+
+    notaHeader: ''
+  });
 
   /* MOUNT */
 
   useEffect(() => {
 
     setMounted(true);
+
+  }, []);
+
+  /* CARGAR CONFIGURACION */
+
+  useEffect(() => {
+
+    obtenerConfiguracion();
 
   }, []);
 
@@ -91,6 +104,46 @@ export default function HomePage() {
     );
 
   }, [carrito, mounted]);
+
+  async function obtenerConfiguracion() {
+
+    try {
+
+      const res = await fetch(
+
+        `${process.env.NEXT_PUBLIC_API_URL}/api/configuracion`,
+        {
+          cache: 'no-store'
+        }
+
+      );
+
+      const data =
+        await res.json();
+
+      if (data) {
+
+        setConfiguracion({
+
+          nombreTienda:
+            data.nombreTienda ||
+            'Superbien',
+
+          descripcionTienda:
+            data.descripcionTienda ||
+            '',
+
+          notaHeader:
+            data.notaHeader ||
+            ''
+        });
+      }
+
+    } catch (error) {
+
+      console.log(error);
+    }
+  }
 
   async function obtenerCategorias() {
 
@@ -377,11 +430,9 @@ export default function HomePage() {
             <h1
               style={{
                 margin: 0,
-
+                fontFamily: 'Montserrat, sans-serif',
                 fontSize: '36px',
-
                 color: '#c4ffc3',
-
                 lineHeight: 1
               }}
             >
@@ -400,7 +451,7 @@ export default function HomePage() {
 
                 fontSize: '14px',
 
-                color: '#d1fae5'
+                color: '#ffffff'
               }}
             >
 
@@ -466,6 +517,37 @@ export default function HomePage() {
           </Link>
 
         </div>
+
+        {
+
+          configuracion.notaHeader && (
+
+            <div
+              style={{
+                marginTop: '3px',
+                background: '#ffecec',
+                color: '#ff2020',
+                padding: '5px',
+                borderRadius: '1px',
+                textAlign: 'center',
+                fontWeight: 'normal',
+                fontFamily: 'Verdana, sans-serif',
+                fontSize: '12px',
+                maxWidth: '900px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                boxShadow:
+                  '0 6px 8px rgba(0,0,0,0.15)'
+              }}
+            >
+
+              {
+                configuracion.notaHeader
+              }
+
+            </div>
+          )
+        }
 
       </header>
 
