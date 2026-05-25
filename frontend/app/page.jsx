@@ -122,7 +122,7 @@ export default function HomePage() {
         await res.json();
 
       const config =
-        console.log(config);
+
         Array.isArray(data)
           ? data[0]
           : data;
