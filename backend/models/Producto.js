@@ -48,6 +48,11 @@ const productoSchema =
 
     },
 
+  orden: {
+    type: Number,
+    default: 99
+  },
+
     descripcion: {
       type: String,
       default: ''

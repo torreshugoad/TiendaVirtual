@@ -14,7 +14,8 @@ async (req, res) => {
 
     const productos =
       await Producto.find()
-        .populate('categoria');
+        .populate('categoria')
+        .sort({ orden: 1 });
 
     res.json(productos);
 
@@ -45,9 +46,9 @@ router.get(
           categoria:
             req.params.id
 
-        }).populate(
-          'categoria'
-        );
+        })
+        .populate('categoria')
+        .sort({ orden: 1 });
 
       res.json(productos);
 
@@ -135,7 +136,9 @@ async (req, res) => {
 
         req.body,
 
-        { new: true }
+        {
+          new: true
+        }
 
       );
 

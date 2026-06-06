@@ -855,6 +855,21 @@ export default function HomePage() {
                                   }
 
                                 </h2>
+<p
+  style={{
+    fontSize: '13px',
+    color: '#666',
+    marginTop: '5px',
+    marginBottom: '10px',
+    overflow: 'hidden',
+    display: '-webkit-box',
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: 'vertical'
+  }}
+>
+  {producto.descripcion}
+</p>
+
 
                                 <div
                                   style={{
