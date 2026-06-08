@@ -803,7 +803,7 @@ export default function HomePage() {
                           gridTemplateColumns:
                             '1fr',
 
-                          gap: '10px'
+                          gap: '5px'
                         }}
                       >
 
@@ -825,7 +825,7 @@ export default function HomePage() {
                                     '8px',
 
                                   padding:
-                                    '10px',
+                                    '8px',
 
                                   boxShadow:
                                     '0 2px 10px rgba(0,0,0,0.06)'
@@ -840,10 +840,10 @@ export default function HomePage() {
                                       '5px',
 
                                     fontSize:
-                                      '24px',
+                                      '18px',
 
                                     lineHeight:
-                                      1.0,
+                                      0.6,
 
                                     color:
                                       '#03240b'
@@ -898,8 +898,10 @@ export default function HomePage() {
                                         producto.foto &&
                                         producto.foto !== ''
 
-                                          ? producto.foto
-
+                                           ? producto.foto.replace(
+                                            '/upload/',
+                                            '/upload/e_vignette:20/'
+                                            )
                                           : '/placeholder-producto.jpg'
                                       }
 
@@ -918,7 +920,7 @@ export default function HomePage() {
                                           'cover',
 
                                         borderRadius:
-                                          '5px'
+                                          '20px'
                                       }}
                                     />
 
@@ -1055,7 +1057,7 @@ export default function HomePage() {
                                                   background:
                                                     stockDisponible <= 0
                                                       ? '#6b7280'
-                                                      : '#047857',
+                                                      : '#41635a',
 
                                                   color:
                                                     '#ffffff',
