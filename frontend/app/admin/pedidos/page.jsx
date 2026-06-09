@@ -147,15 +147,20 @@ const res = await fetch(
 
   function exportarExcel() {
 
-    const resumenPedidos =
+const resumenPedidos =
+  pedidosFiltrados.flatMap(
+    pedido =>
 
-      pedidosFiltrados.map(
-        pedido => ({
+      pedido.items.map(
+        item => ({
 
           Fecha:
             formatearFecha(
               pedido.fecha
             ),
+
+          NroPedido:
+            pedido.nropedido,
 
           Cliente:
             pedido.cliente,
@@ -172,10 +177,20 @@ const res = await fetch(
           Estado:
             pedido.estado,
 
+          Producto:
+            item.nombre,
+
+          Cant:
+            item.cantidad,
+
+          Precio:
+            item.precio,
+
           Total:
             pedido.total
-
-        }));
+        })
+      )
+  );
 
     const detalleProductos =
       [];
