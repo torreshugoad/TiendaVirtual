@@ -258,9 +258,6 @@ router.post(
           nombre:
             item.nombre,
 
-          foto:
-            item.foto,
-
           peso:
             item.peso,
 

@@ -39,8 +39,6 @@ const PedidoSchema =
 
         nombre: String,
 
-        foto: String,
-
         peso: String,
 
         precio: Number,
