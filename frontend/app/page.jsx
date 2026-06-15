@@ -161,7 +161,7 @@ export default function HomePage() {
 
         `${process.env.NEXT_PUBLIC_API_URL}/api/categorias`,
         {
-          cache: 'force-cache'
+          cache: 'no-store'
         }
 
       );
