@@ -9,7 +9,9 @@ const cors =
 
 require('dotenv').config();
 
-/* ROUTES */
+/* =========================
+   ROUTES
+========================= */
 
 const adminStockRoutes =
   require('./routes/adminStock');
@@ -44,35 +46,43 @@ const stockProductoRoutes =
 const verificarStockRoutes =
   require('./routes/verificarStock');
 
+const authRoutes = require('./routes/auth');
+
 const app = express();
 
-/* MIDDLEWARES */
+/* =========================
+   MIDDLEWARES
+========================= */
 
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true
+  })
+);
 
 app.use(express.json());
 
-/* MONGODB */
+/* =========================
+   HEALTH CHECK
+========================= */
 
-mongoose.connect(
-  process.env.MONGO_URI
-)
+app.get(
+  '/',
+  (req, res) => {
 
-.then(() => {
+    res.status(200).json({
+      ok: true,
+      mensaje:
+        'Backend funcionando correctamente'
+    });
 
-  console.log(
-    'MongoDB conectado'
-  );
+  }
+);
 
-})
-
-.catch((err) => {
-
-  console.log(err);
-
-});
-
-/* ROUTES */
+/* =========================
+   API ROUTES
+========================= */
 
 app.use(
   '/api/productos',
@@ -129,19 +139,92 @@ app.use(
   verificarStockRoutes
 );
 
+app.use('/api/admin', authRoutes);
 
-/* SERVER */
+/* =========================
+   404
+========================= */
 
-app.listen(
+app.use(
+  (req, res) => {
 
-  process.env.PORT || 5000,
+    res.status(404).json({
+      error: 'Ruta no encontrada'
+    });
 
-  '0.0.0.0',
+  }
+);
 
-  () => {
+/* =========================
+   MONGODB + SERVER
+========================= */
+
+const PORT =
+  process.env.PORT || 5000;
+
+mongoose
+  .connect(
+    process.env.MONGO_URI,
+    {
+      serverSelectionTimeoutMS: 10000
+    }
+  )
+  .then(() => {
 
     console.log(
-      'Servidor iniciado'
+      '✅ MongoDB conectado'
     );
+
+    app.listen(
+      PORT,
+      '0.0.0.0',
+      () => {
+
+        console.log(
+          `🚀 Servidor iniciado en puerto ${PORT}`
+        );
+
+      }
+    );
+
+  })
+  .catch((err) => {
+
+    console.error(
+      '❌ Error conectando MongoDB:',
+      err
+    );
+
+    process.exit(1);
+
+  });
+
+/* =========================
+   MANEJO DE ERRORES
+========================= */
+
+process.on(
+  'unhandledRejection',
+  (err) => {
+
+    console.error(
+      '❌ Unhandled Rejection:',
+      err
+    );
+
+  }
+);
+
+process.on(
+  'uncaughtException',
+  (err) => {
+
+    console.error(
+      '❌ Uncaught Exception:',
+      err
+    );
+
+    process.exit(1);
+
   }
 );

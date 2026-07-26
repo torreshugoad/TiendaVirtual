@@ -1,17 +1,28 @@
 {
   "name": "me-siento-bien-backend",
   "version": "1.0.0",
+  "description": "Backend Ecommerce Me Siento Bien",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "dev": "nodemon server.js"
   },
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.2.0",
     "mongoose": "^8.3.2",
     "multer": "^2.1.1",
     "multer-storage-cloudinary": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
