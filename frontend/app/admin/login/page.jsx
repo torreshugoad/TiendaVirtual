@@ -1,125 +1,320 @@
 'use client';
 
-import { useState }
-from 'react';
+import { useState } from 'react';
 
-import { useRouter }
-from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
 
-  const router = useRouter();
+  const router =
+    useRouter();
 
-  const [usuario, setUsuario] =
-    useState('');
+  const [
 
-  const [password, setPassword] =
-    useState('');
+    usuario,
 
-  function login() {
+    setUsuario
 
-    if (
-      usuario === 'admin' &&
-      password === '1234'
-    ) {
+  ] = useState('');
+
+  const [
+
+    password,
+
+    setPassword
+
+  ] = useState('');
+
+  const [
+
+    error,
+
+    setError
+
+  ] = useState('');
+
+  const [
+
+    loading,
+
+    setLoading
+
+  ] = useState(false);
+
+  async function login(e) {
+
+    e.preventDefault();
+
+    setError('');
+
+    setLoading(true);
+
+    try {
+
+      const res = await fetch(
+
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`,
+
+        {
+
+          method: 'POST',
+
+          headers: {
+
+            'Content-Type':
+
+              'application/json'
+
+          },
+
+          body: JSON.stringify({
+
+            usuario,
+
+            password
+
+          })
+
+        }
+
+      );
+
+      const data =
+        await res.json();
+
+      if (!res.ok || !data.ok) {
+
+        setError(
+
+          data.mensaje ||
+
+          'Credenciales incorrectas'
+
+        );
+
+        setLoading(false);
+
+        return;
+
+      }
 
       localStorage.setItem(
+
+        'token',
+
+        data.token
+
+      );
+
+      localStorage.setItem(
+
         'adminLogueado',
+
         'true'
+
       );
 
-      router.push(
+      router.replace(
+
         '/admin'
+
       );
 
-    } else {
+    } catch (err) {
 
-      alert(
-        'Usuario o contraseña incorrectos'
+      console.error(err);
+
+      setError(
+
+        'No fue posible conectarse al servidor.'
+
       );
+
+    } finally {
+
+      setLoading(false);
+
     }
+
   }
 
   return (
 
-    <main style={{
-      minHeight: '100vh',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      background: '#f7f7f7',
-      fontFamily: 'Arial'
-    }}>
+    <main style={styles.main}>
 
-      <div style={{
-        background: 'white',
-        padding: 40,
-        borderRadius: 16,
-        width: 350,
-        boxShadow:
-          '0 2px 15px rgba(0,0,0,0.1)'
-      }}>
+      <form
 
-        <h1>
-          Admin Login
-        </h1>
+        onSubmit={login}
+
+        style={styles.form}
+
+      >
+
+        <h2>
+
+          Panel de Administración
+
+        </h2>
 
         <input
+
           placeholder="Usuario"
+
           value={usuario}
-          onChange={(e) =>
+
+          onChange={e =>
+
             setUsuario(
+
               e.target.value
+
             )
+
           }
-          style={inputStyle}
+
+          style={styles.input}
+
         />
 
         <input
+
           type="password"
+
           placeholder="Contraseña"
+
           value={password}
-          onChange={(e) =>
+
+          onChange={e =>
+
             setPassword(
+
               e.target.value
+
             )
+
           }
-          style={inputStyle}
+
+          style={styles.input}
+
         />
+
+        {
+
+          error &&
+
+          (
+
+            <div style={styles.error}>
+
+              {error}
+
+            </div>
+
+          )
+
+        }
 
         <button
-          onClick={login}
-          style={{
-            width: '100%',
-            padding: 14,
-            background: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: 10,
-            fontSize: 16
-          }}
+
+          type="submit"
+
+          disabled={loading}
+
+          style={styles.button}
+
         >
 
-          Ingresar
+          {
+
+            loading
+
+              ? 'Ingresando...'
+
+              : 'Ingresar'
+
+          }
 
         </button>
 
-      </div>
+      </form>
 
     </main>
+
   );
+
 }
 
-const inputStyle = {
+const styles = {
 
-  width: '100%',
+  main: {
 
-  padding: 12,
+    minHeight: '100vh',
 
-  marginBottom: 15,
+    display: 'flex',
 
-  borderRadius: 8,
+    justifyContent: 'center',
 
-  border: '1px solid #ddd'
+    alignItems: 'center',
+
+    background: '#f5f7fa'
+
+  },
+
+  form: {
+
+    width: 360,
+
+    display: 'flex',
+
+    flexDirection: 'column',
+
+    gap: 16,
+
+    padding: 32,
+
+    background: '#fff',
+
+    borderRadius: 12,
+
+    boxShadow:
+      '0 2px 12px rgba(0,0,0,.08)'
+
+  },
+
+  input: {
+
+    padding: 12,
+
+    borderRadius: 8,
+
+    border: '1px solid #d1d5db'
+
+  },
+
+  button: {
+
+    padding: 12,
+
+    border: 'none',
+
+    borderRadius: 8,
+
+    cursor: 'pointer',
+
+    background: '#2563eb',
+
+    color: '#fff',
+
+    fontWeight: 600
+
+  },
+
+  error: {
+
+    color: '#dc2626',
+
+    fontSize: 14
+
+  }
 
 };

@@ -10,6 +10,11 @@ const Producto =
 const Pedido =
   require('../models/Pedido');
 
+const {
+  kgAGramos,
+  descontarStock
+} = require('../utils/stock');
+
 router.post(
   '/',
   async (req, res) => {
@@ -27,21 +32,21 @@ router.post(
 
       } = req.body;
 
-      if (
-        !items ||
-        items.length === 0
-      ) {
+      if (!items || items.length === 0) {
 
         return res.status(400).json({
 
-          mensaje:
-            'Carrito vacío'
+          mensaje: 'Carrito vacío'
+
         });
+
       }
 
       let subtotal = 0;
 
-      /* VALIDAR STOCK */
+      /* ==========================
+         VALIDAR STOCK
+      ========================== */
 
       for (const item of items) {
 
@@ -54,111 +59,102 @@ router.post(
 
           return res.status(404).json({
 
-            mensaje:
-              `Producto no encontrado`
+            mensaje: 'Producto no encontrado'
+
           });
+
         }
 
         const variante =
           producto.variantes.find(
 
-            v =>
-              v.peso === item.peso
+            v => v.peso === item.peso
+
           );
 
         if (!variante) {
 
           return res.status(404).json({
 
-            mensaje:
-              `Variante no encontrada`
+            mensaje: 'Variante no encontrada'
+
           });
+
         }
 
-        /* STOCK NORMAL */
-
-        if (
-          producto.tipoStock !==
-          'granel'
-        ) {
+        if (producto.tipoStock !== 'granel') {
 
           if (
-            Number(
-              variante.stock
-            ) < item.cantidad
+
+            Number(variante.stock) <
+
+            Number(item.cantidad)
+
           ) {
 
             return res.status(400).json({
 
               mensaje:
                 `${producto.nombre} sin stock suficiente`
+
             });
+
           }
 
         } else {
 
-          /* STOCK GRANEL */
+          const kgNecesarios =
 
-          let kgNecesarios = 0;
-
-          const texto =
-            variante.peso
-              .toLowerCase()
-              .replace(/\s/g, '');
-
-          if (
-            texto.includes('kg')
-          ) {
-
-            kgNecesarios =
-              Number(
-                texto.replace(
-                  'kg',
-                  ''
-                )
-              );
-
-          } else if (
-            texto.includes('gr')
-          ) {
-
-            kgNecesarios =
-              Number(
-                texto.replace(
-                  'gr',
-                  ''
-                )
-              ) / 1000;
-          }
+            Number(
+              variante.equivalenciaKg || 0
+            );
 
           const stockDisponible =
 
-            Math.floor(
+            kgAGramos(
+              producto.stockGranelKg
+            );
 
-              Number(
-                producto.stockGranelKg || 0
-              ) / kgNecesarios
+          const solicitado =
+
+            kgAGramos(
+
+              kgNecesarios *
+
+              item.cantidad
+
             );
 
           if (
-            stockDisponible <
-            item.cantidad
+
+            solicitado >
+
+            stockDisponible
+
           ) {
 
             return res.status(400).json({
 
               mensaje:
                 `${producto.nombre} sin stock suficiente`
+
             });
+
           }
+
         }
 
         subtotal +=
+
           Number(item.precio) *
+
           Number(item.cantidad);
+
       }
 
-      /* DESCONTAR STOCK */
+      /* ==========================
+         DESCONTAR STOCK
+      ========================== */
 
       for (const item of items) {
 
@@ -170,62 +166,44 @@ router.post(
         const variante =
           producto.variantes.find(
 
-            v =>
-              v.peso === item.peso
+            v => v.peso === item.peso
+
           );
 
-        if (
-          producto.tipoStock !==
-          'granel'
-        ) {
+        if (producto.tipoStock !== 'granel') {
 
           variante.stock -=
-            item.cantidad;
+            Number(item.cantidad);
 
         } else {
 
-          let kgNecesarios = 0;
+          const kgNecesarios =
 
-          const texto =
-            variante.peso
-              .toLowerCase()
-              .replace(/\s/g, '');
+            Number(
+              variante.equivalenciaKg || 0
+            );
 
-          if (
-            texto.includes('kg')
-          ) {
+          producto.stockGranelKg =
 
-            kgNecesarios =
-              Number(
-                texto.replace(
-                  'kg',
-                  ''
-                )
-              );
+            descontarStock(
 
-          } else if (
-            texto.includes('gr')
-          ) {
+              producto.stockGranelKg,
 
-            kgNecesarios =
-              Number(
-                texto.replace(
-                  'gr',
-                  ''
-                )
-              ) / 1000;
-          }
+              kgNecesarios *
 
-          producto.stockGranelKg -=
+              item.cantidad
 
-            kgNecesarios *
-            item.cantidad;
+            );
+
         }
 
         await producto.save();
+
       }
 
-      /* GENERAR NRO PEDIDO */
+      /* ==========================
+         NÚMERO DE PEDIDO
+      ========================== */
 
       const ultimoPedido =
         await Pedido.findOne()
@@ -236,8 +214,10 @@ router.post(
       let nuevoNumero = 1;
 
       if (
+
         ultimoPedido &&
         ultimoPedido.nropedido
+
       ) {
 
         nuevoNumero =
@@ -245,9 +225,12 @@ router.post(
           Number(
             ultimoPedido.nropedido
           ) + 1;
+
       }
 
-      /* ARMAR ITEMS */
+      /* ==========================
+         ITEMS
+      ========================== */
 
       const itemsPedido =
         items.map(item => ({
@@ -271,15 +254,22 @@ router.post(
             item.cantidad,
 
           subtotal:
+
             Number(item.precio) *
+
             Number(item.cantidad)
+
         }));
 
       const total =
+
         subtotal +
+
         Number(envio || 0);
 
-      /* CREAR PEDIDO */
+      /* ==========================
+         CREAR PEDIDO
+      ========================== */
 
       const pedido =
         new Pedido({
@@ -318,19 +308,24 @@ router.post(
 
         nropedido:
           pedido.nropedido
+
       });
 
     } catch (error) {
 
-      console.log(error);
+      console.error(error);
 
       res.status(500).json({
 
         mensaje:
           'Error en checkout'
+
       });
+
     }
+
   }
+
 );
 
 module.exports = router;

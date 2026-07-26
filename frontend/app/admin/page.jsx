@@ -3,48 +3,28 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import useAdminAuth
+from '@/hooks/useAdminAuth';
+
+
 export default function AdminPage() {
 
   const router = useRouter();
 
-  function logout() {
+function logout() {
 
-    localStorage.removeItem(
-      'adminLogueado'
-    );
+  localStorage.removeItem('adminLogueado');
 
-    router.push('/admin/login');
-  }
+  localStorage.removeItem('token');
+
+  router.replace('/admin/login');
+
+}
+
+const loading =
+  useAdminAuth();
 
   const cards = [
-
-    {
-      titulo: 'Dashboard',
-      descripcion: 'Resumen general de la tienda',
-      href: '/admin/dashboard',
-      color: '#2563eb'
-    },
-
-    {
-      titulo: 'Precios / Stock',
-      descripcion: 'Planilla productos y stock',
-      href: '/admin/stock',
-      color: '#2563eb'
-    },
-
-    {
-      titulo: 'Productos',
-      descripcion: 'Administrar productos y stock',
-      href: '/admin/productos',
-      color: '#16a34a'
-    },
-
-    {
-      titulo: 'Categorías',
-      descripcion: 'Gestionar categorías',
-      href: '/admin/categorias',
-      color: '#9333ea'
-    },
 
     {
       titulo: 'Pedidos',
@@ -54,13 +34,63 @@ export default function AdminPage() {
     },
 
     {
+      titulo: 'Productos',
+      descripcion: 'Administrar productos y stock',
+      href: '/admin/productos',
+      color: '#16a34a'
+    },
+
+
+    {
+      titulo: 'Precios / Stock',
+      descripcion: 'Planilla productos y stock',
+      href: '/admin/stock',
+      color: '#2563eb'
+    },
+
+    {
+      titulo: 'Dashboard',
+      descripcion: 'Resumen general de la tienda',
+      href: '/admin/dashboard',
+      color: '#2563eb'
+    },
+
+
+    {
+      titulo: 'Categorías',
+      descripcion: 'Gestionar categorías',
+      href: '/admin/categorias',
+      color: '#9333ea'
+    },
+
+    {
       titulo: 'Reportes',
       descripcion: 'Ventas y estadísticas',
       href: '/admin/reportes',
       color: '#dc2626'
     },
 
+   {
+      titulo: 'Configuracion',
+      descripcion: 'Configuracion aplicacion',
+      href: '/admin/configuracion',
+      color: '#dc2626'
+    },
+
+   {
+      titulo: 'Cambiar Pasword',
+      descripcion: 'Configuracion clave acceso',
+      href: '/admin/cambiar-password',
+      color: '#dc2626'
+    },
+
   ];
+
+if (loading) {
+
+  return null;
+
+}
 
   return (
 

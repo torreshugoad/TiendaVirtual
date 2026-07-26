@@ -2,38 +2,23 @@ const express = require('express');
 
 const router = express.Router();
 
-const Pedido =
-  require('../models/Pedido');
-
-const Producto =
-  require('../models/Producto');
-
-const Configuracion =
-  require('../models/Configuracion');
+const Pedido = require('../models/Pedido');
+const Producto = require('../models/Producto');
+const Configuracion = require('../models/Configuracion');
 
 
 // OBTENER PEDIDOS
 
-router.get('/',
-async (req, res) => {
-
+router.get('/', async (req, res) => {
   try {
-
-    const pedidos =
-      await Pedido.find()
-      .sort({ fecha: -1 });
+    const pedidos = await Pedido.find().sort({ fecha: -1 });
 
     res.json(pedidos);
-
   } catch (error) {
-
     console.log(error);
 
     res.status(500).json({
-
-      error:
-        'Error al obtener pedidos'
-
+      error: 'Error al obtener pedidos'
     });
   }
 });
@@ -41,85 +26,36 @@ async (req, res) => {
 
 // CREAR PEDIDO
 
-router.post('/',
-async (req, res) => {
-
+router.post('/', async (req, res) => {
   try {
+    const configuracion = await Configuracion.findOneAndUpdate(
+      {},
+      { $inc: { nropedido: 1 } },
+      { new: true, upsert: true }
+    );
 
-    // INCREMENTAR NRO PEDIDO
-
-    const configuracion =
-
-      await Configuracion.findOneAndUpdate(
-
-        {},
-
-        {
-          $inc: {
-            nropedido: 1
-          }
-        },
-
-        {
-          new: true,
-          upsert: true
-        }
-
-      );
-
-    // CREAR PEDIDO
-
-    const pedido =
-      new Pedido({
-
-        nropedido:
-          configuracion.nropedido,
-
-        cliente:
-          req.body.cliente,
-
-        telefono:
-          req.body.telefono,
-
-        direccion:
-          req.body.direccion,
-
-        tipoEntrega:
-          req.body.tipoEntrega,
-
-        envio:
-          req.body.envio,
-
-        items:
-          req.body.items,
-
-        subtotal:
-          req.body.subtotal,
-
-        total:
-          req.body.total,
-
-        estado:
-          req.body.estado,
-
-        fecha:
-          req.body.fecha
-
-      });
+    const pedido = new Pedido({
+      nropedido: configuracion.nropedido,
+      cliente: req.body.cliente,
+      telefono: req.body.telefono,
+      direccion: req.body.direccion,
+      tipoEntrega: req.body.tipoEntrega,
+      envio: req.body.envio,
+      items: req.body.items,
+      subtotal: req.body.subtotal,
+      total: req.body.total,
+      estado: req.body.estado,
+      fecha: req.body.fecha
+    });
 
     await pedido.save();
 
     res.json(pedido);
-
   } catch (error) {
-
     console.log(error);
 
     res.status(500).json({
-
-      error:
-        'Error al guardar pedido'
-
+      error: 'Error al guardar pedido'
     });
   }
 });
@@ -127,167 +63,138 @@ async (req, res) => {
 
 // DESCONTAR STOCK
 
-router.post(
+router.post('/descontar-stock', async (req, res) => {
+  try {
+    const items = req.body.items || [];
 
-  '/descontar-stock',
+    for (const item of items) {
+      const producto = await Producto.findById(item.productoId);
 
-  async (req, res) => {
+      if (!producto) continue;
 
-    try {
+      if (producto.tipoStock !== 'granel') {
+        const variante = producto.variantes.find(
+          (v) => v.peso === item.peso
+        );
 
-      const items =
-        req.body.items || [];
+        if (variante) {
+          variante.stock -= Number(item.cantidad);
+        }
+      } else {
+        let gramos = 0;
 
-      for (const item of items) {
+        const variante = producto.variantes.find(
+          (v) => v.peso === item.peso
+        );
 
-        const producto =
-          await Producto.findById(
-            item.productoId
-          );
-
-        if (!producto)
-          continue;
-
-        // STOCK NORMAL
-
-        if (
-
-          producto.tipoStock !==
-          'granel'
-
-        ) {
-
-          const variante =
-
-            producto.variantes.find(
-              v =>
-                v.peso === item.peso
-            );
-
-          if (variante) {
-
-            variante.stock -=
-
-              Number(
-                item.cantidad
-              );
-          }
-
+        if (variante) {
+          gramos = variante.equivalencia;
         } else {
+          const texto = item.peso.toLowerCase().replace(/\s/g, '');
 
-          // STOCK GRANEL
-
-          let kg = 0;
-
-          const texto =
-            item.peso
-              .toLowerCase()
-              .replace(/\s/g, '');
-
-          if (
-            texto.includes('kg')
-          ) {
-
-            kg =
-
-              Number(
-
-                texto.replace(
-                  'kg',
-                  ''
-                )
-
-              );
-
-          } else if (
-
-            texto.includes('gr')
-
-          ) {
-
-            kg =
-
-              Number(
-
-                texto.replace(
-                  'gr',
-                  ''
-                )
-
-              ) / 1000;
-
+          if (texto.includes('kg')) {
+            gramos = Number(texto.replace('kg', '')) * 1000;
+          } else if (texto.includes('gr')) {
+            gramos = Number(texto.replace('gr', ''));
           } else {
-
-            kg =
-              Number(texto) / 1000;
+            gramos = Number(texto);
           }
-
-          producto.stockGranelKg -=
-
-            kg *
-
-            Number(
-              item.cantidad
-            );
         }
 
-        await producto.save();
+        producto.stockGranel -= gramos * Number(item.cantidad);
       }
 
-      res.json({
-        ok: true
-      });
-
-    } catch (error) {
-
-      console.log(error);
-
-      res.status(500).json({
-
-        error:
-          'Error al descontar stock'
-
-      });
+      await producto.save();
     }
+
+    res.json({ ok: true });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+      error: 'Error al descontar stock'
+    });
   }
-);
+});
+
+
+// REPONER STOCK (helper interno, usado al cancelar un pedido)
+
+async function reponerStock(items) {
+  for (const item of items) {
+    const producto = await Producto.findById(item.productoId);
+
+    if (!producto) continue;
+
+    if (producto.tipoStock !== 'granel') {
+      const variante = producto.variantes.find(
+        (v) => v.peso === item.peso
+      );
+
+      if (variante) {
+        variante.stock += Number(item.cantidad);
+      }
+    } else {
+      let gramos = 0;
+
+      const variante = producto.variantes.find(
+        (v) => v.peso === item.peso
+      );
+
+      if (variante) {
+        gramos = variante.equivalencia;
+      } else {
+        const texto = item.peso.toLowerCase().replace(/\s/g, '');
+
+        if (texto.includes('kg')) {
+          gramos = Number(texto.replace('kg', '')) * 1000;
+        } else if (texto.includes('gr')) {
+          gramos = Number(texto.replace('gr', ''));
+        } else {
+          gramos = Number(texto);
+        }
+      }
+
+      producto.stockGranel += gramos * Number(item.cantidad);
+    }
+
+    await producto.save();
+  }
+}
 
 
 // ACTUALIZAR ESTADO
 
-router.put('/:id',
-async (req, res) => {
-
+router.put('/:id', async (req, res) => {
   try {
+    const { estado } = req.body;
 
-    const { estado } =
-      req.body;
+    const pedido = await Pedido.findById(req.params.id);
 
-    const pedido =
-      await Pedido.findByIdAndUpdate(
+    if (!pedido) {
+      return res.status(404).json({
+        error: 'Pedido no encontrado'
+      });
+    }
 
-        req.params.id,
+    // Si se cancela un pedido que NO estaba ya cancelado,
+    // se repone el stock de cada item automáticamente.
+    // El chequeo evita reponer dos veces si alguien reintenta la acción.
 
-        {
-          estado
-        },
+    if (estado === 'Cancelado' && pedido.estado !== 'Cancelado') {
+      await reponerStock(pedido.items);
+    }
 
-        {
-          new: true
-        }
-      );
+    pedido.estado = estado;
+
+    await pedido.save();
 
     res.json(pedido);
-
   } catch (error) {
-
     console.log(error);
 
     res.status(500).json({
-
-      error:
-        'Error actualizando pedido'
-
+      error: 'Error actualizando pedido'
     });
   }
 });

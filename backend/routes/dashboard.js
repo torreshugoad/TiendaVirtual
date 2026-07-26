@@ -4,6 +4,11 @@ const express =
 const router =
   express.Router();
 
+const auth =
+  require('../middleware/auth');
+
+router.use(auth);
+
 const Pedido =
   require('../models/Pedido');
 
@@ -21,18 +26,9 @@ async (req, res) => {
     const productos =
       await Producto.find();
 
-    const ventasTotales =
-      pedidos.reduce(
-
-        (acc, pedido) =>
-
-          acc + (
-            pedido.total || 0
-          ),
-
-        0
-
-      );
+const ventasTotales = pedidos
+  .filter(pedido => pedido.estado !== "Cancelado")
+  .reduce((acc, pedido) => acc + (pedido.total || 0), 0);
 
     const pedidosPendientes =
 
@@ -145,57 +141,31 @@ async (req, res) => {
 
       .slice(0, 10);
 
-    const stockBajo =
-      [];
+const stockBajo = [];
 
-    productos.forEach(
-      producto => {
+productos.forEach((producto) => {
+  if (producto.tipoStock === 'granel') {
+    const minimo = producto.stockMinimoGranel ?? 2000;
 
-      if (
-        producto.tipoStock ===
-        'granel'
-      ) {
+    if (producto.stockGranel <= minimo) {
+      stockBajo.push({
+        nombre: producto.nombre,
+        stock: `${(producto.stockGranel / 1000).toFixed(2)} Kg`
+      });
+    }
+  } else {
+    producto.variantes?.forEach((v) => {
+      const minimo = v.stockMinimo ?? 5;
 
-        if (
-          producto.stockGranelKg <= 2
-        ) {
-
-          stockBajo.push({
-
-            nombre:
-              producto.nombre,
-
-            stock:
-              `${producto.stockGranelKg} Kg`
-
-          });
-
-        }
-
-      } else {
-
-        producto.variantes
-          ?.forEach(v => {
-
-          if (v.stock <= 5) {
-
-            stockBajo.push({
-
-              nombre:
-                `${producto.nombre} ${v.peso}`,
-
-              stock:
-                v.stock
-
-            });
-
-          }
-
+      if (v.stock <= minimo) {
+        stockBajo.push({
+          nombre: `${producto.nombre} ${v.peso}`,
+          stock: v.stock
         });
-
       }
-
     });
+  }
+});
 
     res.json({
 

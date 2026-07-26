@@ -1,220 +1,136 @@
 'use client';
 
-import {
-  useEffect,
-  useState
-} from 'react';
+import { useEffect, useState } from 'react';
+
+import useAdminAuth from '@/hooks/useAdminAuth';
+import { apiFetch } from '@/lib/api';
+
+import DashboardCard from '@/components/admin/dashboard/DashboardCard';
+import DashboardSection from '@/components/admin/dashboard/DashboardSection';
+import TopProductos from '@/components/admin/dashboard/TopProductos';
+import StockBajo from '@/components/admin/dashboard/StockBajo';
 
 export default function DashboardPage() {
+  const loading = useAdminAuth();
 
-  const [dashboard,
-    setDashboard] =
-    useState(null);
+  const [dashboard, setDashboard] = useState(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-
-    obtenerDashboard();
-
-  }, []);
+    if (!loading) {
+      obtenerDashboard();
+    }
+  }, [loading]);
 
   async function obtenerDashboard() {
+    try {
+      setError(false);
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard`
+      const res = await apiFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard`
+      );
+
+      if (!res) return;
+
+      const data = await res.json();
+
+      setDashboard(data);
+    } catch (err) {
+      console.error(err);
+      setError(true);
+    }
+  }
+
+  if (loading) {
+    return null;
+  }
+
+  if (error) {
+    return (
+      <main style={{ padding: 40 }}>
+        <p>No se pudo cargar el dashboard.</p>
+
+        <button onClick={obtenerDashboard}>
+          Reintentar
+        </button>
+      </main>
     );
-
-    const data =
-      await res.json();
-
-    setDashboard(data);
   }
 
   if (!dashboard) {
-
     return (
-
-      <main style={{
-        padding: 40
-      }}>
-
+      <main style={{ padding: 40 }}>
         Cargando dashboard...
-
       </main>
-
     );
   }
 
+  const ventasTotales = Number(dashboard.ventasTotales || 0);
+  const facturacionMensual = Number(dashboard.facturacionMensual || 0);
+
   return (
+    <main
+      style={{
+        padding: 30,
+        background: '#f7f7f7',
+        minHeight: '100vh',
+        fontFamily: 'Arial'
+      }}
+    >
+      <h1 style={{ marginBottom: 30 }}>Dashboard</h1>
 
-    <main style={{
-      padding: 30,
-      background: '#f7f7f7',
-      minHeight: '100vh',
-      fontFamily: 'Arial'
-    }}>
-
-      <h1 style={{
-        marginBottom: 30
-      }}>
-
-        Dashboard
-
-      </h1>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns:
-          'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: 20,
-        marginBottom: 30
-      }}>
-
-        <Card
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: 20,
+          marginBottom: 30
+        }}
+      >
+        <DashboardCard
           titulo="Ventas Totales"
-          valor={`$${dashboard.ventasTotales?.toFixed(2)}`}
+          valor={`$${ventasTotales.toFixed(2)}`}
+          icono="💰"
+          color="#2563eb"
         />
 
-        <Card
+        <DashboardCard
           titulo="Pedidos Pendientes"
-          valor={
-            dashboard.pedidosPendientes
-          }
+          valor={dashboard.pedidosPendientes ?? 0}
+          icono="⏳"
+          color="#f59e0b"
         />
 
-        <Card
+        <DashboardCard
           titulo="Pedidos Hoy"
-          valor={
-            dashboard.pedidosHoy
-          }
+          valor={dashboard.pedidosHoy ?? 0}
+          icono="📦"
+          color="#16a34a"
         />
 
-        <Card
+        <DashboardCard
           titulo="Facturación Mensual"
-          valor={`$${dashboard.facturacionMensual?.toFixed(2)}`}
+          valor={`$${facturacionMensual.toFixed(2)}`}
+          icono="📈"
+          color="#6b21a8"
         />
-
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns:
-          '1fr 1fr',
-        gap: 20
-      }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 20
+        }}
+      >
+        <DashboardSection titulo="Top Productos">
+          <TopProductos productos={dashboard.topProductos} />
+        </DashboardSection>
 
-        <div style={{
-          background: 'white',
-          padding: 25,
-          borderRadius: 12
-        }}>
-
-          <h2>
-            Top Productos
-          </h2>
-
-          {dashboard.topProductos?.map(
-            (p, index) => (
-
-            <div
-              key={index}
-              style={{
-                padding: 10,
-                borderBottom:
-                  '1px solid #eee'
-              }}
-            >
-
-              <strong>
-                {p[0]}
-              </strong>
-
-              <p>
-                Vendidos:
-                {' '}
-                {p[1]}
-              </p>
-
-            </div>
-
-          ))}
-
-        </div>
-
-        <div style={{
-          background: 'white',
-          padding: 25,
-          borderRadius: 12
-        }}>
-
-          <h2>
-            Stock Bajo
-          </h2>
-
-          {dashboard.stockBajo?.length === 0 && (
-
-            <p>
-              No hay alertas
-            </p>
-
-          )}
-
-          {dashboard.stockBajo?.map(
-            (p, index) => (
-
-            <div
-              key={index}
-              style={{
-                padding: 10,
-                borderBottom:
-                  '1px solid #eee'
-              }}
-            >
-
-              <strong>
-                {p.nombre}
-              </strong>
-
-              <p>
-                Stock:
-                {' '}
-                {p.stock}
-              </p>
-
-            </div>
-
-          ))}
-
-        </div>
-
+        <DashboardSection titulo="Stock Bajo">
+          <StockBajo productos={dashboard.stockBajo} />
+        </DashboardSection>
       </div>
-
     </main>
-  );
-}
-
-function Card({
-  titulo,
-  valor
-}) {
-
-  return (
-
-    <div style={{
-      background: 'white',
-      padding: 25,
-      borderRadius: 12,
-      boxShadow:
-        '0 2px 8px rgba(0,0,0,0.08)'
-    }}>
-
-      <h3>
-        {titulo}
-      </h3>
-
-      <h1>
-        {valor}
-      </h1>
-
-    </div>
   );
 }

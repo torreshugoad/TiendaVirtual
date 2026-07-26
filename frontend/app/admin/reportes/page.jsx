@@ -1,5 +1,10 @@
 'use client';
 
+import useAdminAuth
+from '@/hooks/useAdminAuth';
+
+import { apiFetch } from '@/lib/api';
+
 import {
   useEffect,
   useState
@@ -12,6 +17,9 @@ import { saveAs }
   from 'file-saver';
 
 export default function ReportesPage() {
+
+const loading =
+  useAdminAuth();
 
   const [tipo,
     setTipo] =
@@ -29,25 +37,27 @@ export default function ReportesPage() {
     setFechaFin] =
     useState('');
 
-  useEffect(() => {
-
+useEffect(() => {
+  if (!loading) {
     obtenerReporte();
+  }
+}, [loading, tipo]);
 
-  }, [tipo]);
-
-  async function obtenerReporte() {
-
-    const res = await fetch(
-
+async function obtenerReporte() {
+  try {
+    const res = await apiFetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/reportes/ventas?tipo=${tipo}`
-
     );
-
-    const data =
-      await res.json();
-
+    if (!res) return;
+    const data = await res.json();
+    console.log(data);
     setReporte(data);
   }
+  catch (error) {
+    console.error(error);
+  }
+}
+
 
   function formatearFecha(fecha) {
 
@@ -69,14 +79,15 @@ export default function ReportesPage() {
       return;
     }
 
-    const res = await fetch(
+const res = await apiFetch(
 
-      `${process.env.NEXT_PUBLIC_API_URL}/api/reportes/ventas-excel?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`
+  `${process.env.NEXT_PUBLIC_API_URL}/api/reportes/ventas-excel?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`
 
-    );
+);
 
-    const ventas =
-      await res.json();
+if (!res) return;
+
+const ventas = await res.json();
 
     const datos =
       ventas.map(v => ({
@@ -159,6 +170,12 @@ export default function ReportesPage() {
       'reporte_ventas.xlsx'
     );
   }
+
+if (loading) {
+
+  return null;
+
+}
 
   return (
 

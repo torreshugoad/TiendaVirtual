@@ -46,7 +46,8 @@ console.log(item);
         },
         body: JSON.stringify({
           productoId: item.productoId,
-          peso: item.peso
+          peso: item.peso,
+          carrito
         })
       }
     );
@@ -122,6 +123,13 @@ async function verificarStock() {
 
     const data =
       await response.json();
+
+    console.log(
+      'DEBUG verificarStock →',
+      'status:', response.status,
+      'ok:', response.ok,
+      'data:', data
+    );
 
     if (!response.ok) {
 

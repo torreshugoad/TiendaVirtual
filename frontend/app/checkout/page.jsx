@@ -1,6 +1,61 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+/* ==========================
+   Convierte el texto del peso
+   (ej. "100Gr", "1Kg") a gramos.
+   Espejo de calcularEquivalencia
+   en VariantesEditor.jsx.
+========================== */
+
+function parsearPesoAGramos(peso) {
+
+  if (!peso) return 0;
+
+  const texto =
+
+    String(peso)
+      .toLowerCase()
+      .replace(',', '.')
+      .replace(/\s/g, '');
+
+  if (texto.endsWith('kg')) {
+
+    return Math.round(
+
+      parseFloat(
+        texto.replace('kg', '')
+      ) * 1000
+    );
+  }
+
+  if (texto.endsWith('gr')) {
+
+    return Math.round(
+
+      parseFloat(
+        texto.replace('gr', '')
+      )
+    );
+  }
+
+  return 0;
+}
+
+function formatearGramos(gramos) {
+
+  if (gramos >= 1000) {
+
+    const kg = gramos / 1000;
+
+    return `${
+      Number(kg.toFixed(2))
+    }Kg`;
+  }
+
+  return `${gramos}Gr`;
+}
 
 export default function CheckoutPage() {
 
@@ -90,6 +145,99 @@ export default function CheckoutPage() {
 
       0
     );
+
+  // Agrupamos el carrito por producto para poder mostrar, cuando
+  // se compran varias variantes/cantidades de un mismo producto
+  // pesable (ej. 100Gr + 250Gr), el total combinado en gramos.
+
+  const pedidoAgrupado =
+    useMemo(() => {
+
+      const grupos =
+        carrito.reduce(
+          (acc, item) => {
+
+            if (!acc[item.productoId]) {
+
+              acc[item.productoId] = {
+
+                productoId:
+                  item.productoId,
+
+                nombre:
+                  item.nombre,
+
+                foto:
+                  item.foto,
+
+                tipoStock:
+                  item.tipoStock,
+
+                variantes: []
+              };
+            }
+
+            acc[
+              item.productoId
+            ].variantes.push(item);
+
+            return acc;
+          },
+          {}
+        );
+
+      return Object.values(grupos).map(
+        grupo => {
+
+          const esGranel =
+
+            grupo.tipoStock ===
+            'granel';
+
+          const totalGramos =
+
+            esGranel
+
+              ? grupo.variantes.reduce(
+                  (acc, v) =>
+
+                    acc +
+
+                    parsearPesoAGramos(
+                      v.peso
+                    ) *
+
+                    Number(v.cantidad || 0),
+
+                  0
+                )
+
+              : null;
+
+          const totalPrecio =
+
+            grupo.variantes.reduce(
+              (acc, v) =>
+
+                acc +
+
+                Number(v.precio) *
+
+                Number(v.cantidad),
+
+              0
+            );
+
+          return {
+            ...grupo,
+            esGranel,
+            totalGramos,
+            totalPrecio
+          };
+        }
+      );
+
+    }, [carrito]);
 
   const envioGratisDesde =
     Number(
@@ -245,18 +393,48 @@ export default function CheckoutPage() {
 
       const productosTexto =
 
-        carrito.map(item => {
+        pedidoAgrupado.map(grupo => {
 
-          const subtotalItem =
+          const lineas =
 
-            Number(item.precio) *
+            grupo.variantes.map(v => {
 
-            Number(item.cantidad);
+              const subtotalItem =
 
-          return `${item.nombre}
-${item.peso} - Cant ${item.cantidad}: $${subtotalItem}`;
+                Number(v.precio) *
 
-        }).join('\n');
+                Number(v.cantidad);
+
+              return grupo.esGranel
+
+                ? `${v.peso} - Cant ${v.cantidad}: $${subtotalItem}`
+
+                : `Cant. ${v.cantidad}: $${subtotalItem}`;
+
+            }).join('\n');
+
+          const totalLinea =
+
+            grupo.esGranel &&
+
+            (
+              grupo.variantes.length > 1 ||
+
+              Number(grupo.variantes[0].cantidad) > 1
+            )
+
+              ? `\n*Total: ${
+                  formatearGramos(
+                    grupo.totalGramos
+                  )
+                }*`
+
+              : '';
+
+          return `*${grupo.nombre}*
+${lineas}${totalLinea}`;
+
+        }).join('\n\n');
 
       const mensaje =
 
@@ -430,11 +608,11 @@ TOTAL: $${totalFinal}`;
 
         {
 
-          carrito.map(
-            (item, index) => (
+          pedidoAgrupado.map(
+            grupo => (
 
             <div
-              key={index}
+              key={grupo.productoId}
 
               style={{
                 padding: '15px 0',
@@ -443,64 +621,117 @@ TOTAL: $${totalFinal}`;
               }}
             >
 
-              <div
+              <p
                 style={{
-                  display: 'flex',
-                  justifyContent:
-                    'space-between',
-                  alignItems: 'center'
+                  margin: '0 0 6px 0',
+                  fontSize: '17px'
                 }}
               >
 
-                <div>
-
-                  <p
-                    style={{
-                      margin: 0
-                    }}
-                  >
-
-                    <strong>
-                      {item.nombre}
-                    </strong>
-
-                  </p>
-
-                  <p
-                    style={{
-                      margin: '4px 0',
-                      color: '#6b7280'
-                    }}
-                  >
-
-                    {item.peso}
-
-                    {' · '}
-
-                    Cantidad:
-                    {' '}
-
-                    {item.cantidad}
-
-                  </p>
-
-                </div>
-
                 <strong>
-
-                  $
-
-                  {
-
-                    Number(item.precio) *
-
-                    Number(item.cantidad)
-
-                  }
-
+                  {grupo.nombre}
                 </strong>
 
-              </div>
+              </p>
+
+              {
+
+                grupo.variantes.map(
+                  (v, i) => (
+
+                    <div
+                      key={i}
+
+                      style={{
+                        display: 'flex',
+                        justifyContent:
+                          'space-between',
+                        alignItems: 'center',
+                        paddingLeft: '10px',
+                        marginBottom: '4px'
+                      }}
+                    >
+
+                      <span
+                        style={{
+                          color: '#6b7280'
+                        }}
+                      >
+
+                        {
+
+                          grupo.esGranel
+
+                            ? (
+                              <>
+                                {v.peso}
+
+                                {' · '}
+
+                                Cantidad:
+                                {' '}
+
+                                {v.cantidad}
+                              </>
+                            )
+
+                            : (
+                              <>
+                                Cant.
+                                {' '}
+                                {v.cantidad}
+                              </>
+                            )
+                        }
+
+                      </span>
+
+                      <strong>
+
+                        $
+
+                        {
+
+                          Number(v.precio) *
+
+                          Number(v.cantidad)
+
+                        }
+
+                      </strong>
+
+                    </div>
+                  )
+                )
+              }
+
+              {
+
+                grupo.esGranel &&
+
+                (
+                  grupo.variantes.length > 1 ||
+
+                  Number(grupo.variantes[0].cantidad) > 1
+                ) && (
+
+                  <p
+                    style={{
+                      margin: '6px 0 0 10px',
+                      color: '#111827',
+                      fontWeight: 'bold'
+                    }}
+                  >
+
+                    Total: {
+                      formatearGramos(
+                        grupo.totalGramos
+                      )
+                    }
+
+                  </p>
+                )
+              }
 
             </div>
           ))

@@ -2,162 +2,243 @@ const express = require('express');
 
 const router = express.Router();
 
-const Producto =
-  require('../models/Producto');
+const auth = require('../middleware/auth');
+router.use(auth);
 
-/* =========================
+const Producto = require('../models/Producto');
+
+/* ==========================
    OBTENER STOCK
-========================= */
+========================== */
 
-router.get(
-  '/',
-  async (req, res) => {
+router.get('/', async (req, res) => {
 
-    try {
+  try {
 
-      const productos =
-        await Producto.find()
-          .populate('categoria');
+    const productos =
 
-      const filas = [];
+      await Producto.find()
 
-      productos.forEach(
-        producto => {
+        .populate('categoria');
 
-          producto.variantes.forEach(
-            variante => {
+    const filas = [];
 
-              filas.push({
+    productos.forEach(producto => {
 
-                productoId:
-                  producto._id,
+      producto.variantes.forEach(variante => {
 
-                varianteId:
-                  variante._id,
+        filas.push({
 
-                categoria:
-                  producto.categoria
-                    ?.nombre || '',
+          productoId:
+            producto._id,
 
-                producto:
-                  producto.nombre,
+          varianteId:
+            variante._id,
 
-                peso:
-                  variante.peso,
+          categoria:
+            producto.categoria?.nombre || '',
 
-                precio:
-                  variante.precio,
+          producto:
+            producto.nombre,
 
-                stock:
-                  variante.stock || 0,
+          peso:
+            variante.peso,
 
-                tipoStock:
-                  producto.tipoStock,
+          precio:
+            Number(
+              variante.precio || 0
+            ),
 
-                stockGranelKg:
-                  producto.stockGranelKg || 0
-              });
-            }
-          );
-        }
-      );
+          stock:
+            Number(
+              variante.stock || 0
+            ),
 
-      res.json(filas);
+          stockMinimo:
+            Number(
+              variante.stockMinimo ?? 5
+            ),
 
-    } catch (error) {
+          tipoStock:
+            producto.tipoStock,
 
-      console.log(error);
+          // Mongo guarda gramos.
+          // El administrador ve Kg.
 
-      res.status(500).json({
+          stockGranel:
 
-        error:
-          'Error obteniendo stock'
+            Number(
+              producto.stockGranel || 0
+            ) / 1000,
+
+          stockMinimoGranel:
+
+            Number(
+              producto.stockMinimoGranel ?? 2000
+            ) / 1000
+
+        });
+
       });
-    }
+
+    });
+
+    res.json(filas);
+
   }
-);
 
-/* =========================
+  catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+
+      error:
+        'Error obteniendo stock'
+
+    });
+
+  }
+
+});
+
+/* ==========================
    GUARDAR CAMBIOS
-========================= */
+========================== */
 
-router.put(
-  '/',
-  async (req, res) => {
+router.put('/', async (req, res) => {
 
-    try {
+  try {
 
-      const { filas } =
-        req.body;
+    const { filas } = req.body;
 
-      for (const fila of filas) {
+    for (const fila of filas) {
 
-        const producto =
-          await Producto.findById(
-            fila.productoId
-          );
+      const producto =
 
-        if (!producto) {
-          continue;
-        }
+        await Producto.findById(
 
-        /* STOCK GRANEL */
+          fila.productoId
 
-        if (
-          producto.tipoStock ===
-          'granel'
-        ) {
+        );
 
-          producto.stockGranelKg =
-            Number(
-              fila.stockGranelKg || 0
-            );
-        }
+      if (!producto) {
 
-        /* VARIANTE */
+        continue;
 
-        const variante =
-          producto.variantes.id(
-            fila.varianteId
-          );
-
-        if (variante) {
-
-          variante.precio =
-            Number(
-              fila.precio || 0
-            );
-
-          if (
-            producto.tipoStock !==
-            'granel'
-          ) {
-
-            variante.stock =
-              Number(
-                fila.stock || 0
-              );
-          }
-        }
-
-        await producto.save();
       }
 
-      res.json({
-        success: true
+      /* ==========================
+         STOCK GRANEL
+      ========================== */
+
+      if (
+
+        producto.tipoStock === 'granel'
+
+      ) {
+
+        producto.stockGranel =
+
+          Math.round(
+
+            Number(
+
+              fila.stockGranel || 0
+
+            ) * 1000
+
+          );
+
+        producto.stockMinimoGranel =
+
+          Math.round(
+
+            Number(
+
+              fila.stockMinimoGranel || 0
+
+            ) * 1000
+
+          );
+
+      }
+
+      /* ==========================
+         VARIANTE
+      ========================== */
+
+      const variante =
+
+        producto.variantes.id(
+
+          fila.varianteId
+
+        );
+
+      if (variante) {
+
+        variante.precio =
+
+          Number(
+
+            fila.precio || 0
+
+          );
+
+        if (
+
+          producto.tipoStock !== 'granel'
+
+        ) {
+
+          variante.stock =
+
+            Number(
+
+              fila.stock || 0
+
+            );
+
+          variante.stockMinimo =
+
+            Number(
+
+              fila.stockMinimo ?? 5
+
+            );
+
+        }
+
+      }
+
+      await producto.save({
+        validateModifiedOnly: true
       });
 
-    } catch (error) {
-
-      console.log(error);
-
-      res.status(500).json({
-
-        error:
-          'Error guardando stock'
-      });
     }
+
+    res.json({
+
+      success: true
+
+    });
+
   }
-);
+
+  catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+
+      error:
+        'Error guardando stock'
+
+    });
+
+  }
+
+});
 
 module.exports = router;

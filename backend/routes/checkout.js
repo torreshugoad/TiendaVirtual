@@ -1,14 +1,66 @@
-const express =
-  require('express');
+const express = require('express');
 
-const router =
-  express.Router();
+const router = express.Router();
 
 const Producto =
   require('../models/Producto');
 
 const Pedido =
   require('../models/Pedido');
+
+const Configuracion =
+  require('../models/Configuracion');
+
+/* ==========================
+   Convierte el texto del peso
+   (ej. "100Gr", "1Kg") a gramos.
+   Misma lógica que en el frontend
+   (calculadora de balanza / carrito manual).
+========================== */
+
+function parsearPesoAGramos(peso) {
+  if (!peso) return 0;
+
+  const texto = String(peso)
+    .toLowerCase()
+    .replace(',', '.')
+    .replace(/\s/g, '');
+
+  if (texto.endsWith('kg')) {
+    return Math.round(parseFloat(texto.replace('kg', '')) * 1000);
+  }
+
+  if (texto.endsWith('gr')) {
+    return Math.round(parseFloat(texto.replace('gr', '')));
+  }
+
+  return 0;
+}
+
+/* ==========================
+   Para productos a granel, no hay una variante que
+   coincida exacto con el peso pedido (ej. 137Gr).
+   Usamos la variante cargada de mayor equivalencia que
+   no supere el peso pedido como referencia de tarifa.
+========================== */
+
+function obtenerVarianteDeTarifa(variantes, gramos) {
+  const ordenadas = [...variantes].sort(
+    (a, b) => Number(a.equivalencia) - Number(b.equivalencia)
+  );
+
+  let elegida = ordenadas[0];
+
+  for (const v of ordenadas) {
+    if (gramos >= Number(v.equivalencia)) {
+      elegida = v;
+    } else {
+      break;
+    }
+  }
+
+  return elegida;
+}
 
 router.post(
   '/',
@@ -36,17 +88,54 @@ router.post(
 
           mensaje:
             'Carrito vacío'
+
         });
+
       }
 
       let subtotal = 0;
 
-      /* VALIDAR STOCK */
+      // Cache de productos ya consultados (evita refetch por línea
+      // y permite mutar el MISMO documento en memoria para todos
+      // los descuentos que le correspondan antes de guardarlo).
+
+      const productosCache = {};
+
+      async function obtenerProducto(id) {
+
+        const idStr = String(id);
+
+        if (!productosCache[idStr]) {
+
+          productosCache[idStr] =
+            await Producto.findById(id);
+        }
+
+        return productosCache[idStr];
+      }
+
+      // Gramos totales pedidos por producto GRANEL (suma de líneas
+      // sueltas de ese producto + lo que exploten los combos que
+      // lo incluyan como componente).
+
+      const gramosPedidosPorProducto = {};
+
+      // Unidades totales pedidas por variante de producto por UNIDAD
+      // (clave: productoId + '|' + varianteId).
+
+      const unidadesPedidasPorVariante = {};
+
+      /* ==========================
+         PASO 1: recorrer el carrito,
+         calcular precios server-side,
+         y ACUMULAR necesidades (sin
+         validar ni descontar todavía).
+      ========================== */
 
       for (const item of items) {
 
         const producto =
-          await Producto.findById(
+          await obtenerProducto(
             item.productoId
           );
 
@@ -55,201 +144,322 @@ router.post(
           return res.status(404).json({
 
             mensaje:
-              `Producto no encontrado`
+              'Producto no encontrado'
+
           });
+
         }
 
-        const variante =
-          producto.variantes.find(
+        /* ---------- COMBO ---------- */
 
-            v =>
-              v.peso === item.peso
-          );
-
-        if (!variante) {
-
-          return res.status(404).json({
-
-            mensaje:
-              `Variante no encontrada`
-          });
-        }
-
-        /* STOCK NORMAL */
-
-        if (
-          producto.tipoStock !==
-          'granel'
-        ) {
+        if (producto.tipoStock === 'combo') {
 
           if (
-            Number(
-              variante.stock
-            ) < item.cantidad
+            !producto.componentes ||
+            producto.componentes.length === 0
           ) {
 
             return res.status(400).json({
 
               mensaje:
-                `${producto.nombre} sin stock suficiente`
+                `${producto.nombre} no tiene componentes configurados`
+
             });
+
           }
+
+          // Precio del combo: siempre el de oferta cargado en el
+          // producto, nunca el que manda el cliente.
+
+          item.precio =
+            Number(producto.precioCombo || 0);
+
+          for (const componente of producto.componentes) {
+
+            const productoComponente =
+              await obtenerProducto(
+                componente.productoId
+              );
+
+            if (!productoComponente) {
+
+              return res.status(404).json({
+
+                mensaje:
+                  `Componente no encontrado en ${producto.nombre}`
+
+              });
+
+            }
+
+            if (productoComponente.tipoStock !== 'granel') {
+
+              return res.status(400).json({
+
+                mensaje:
+                  `El componente ${productoComponente.nombre} de ${producto.nombre} debe ser un producto a granel`
+
+              });
+
+            }
+
+            const idComponente =
+              String(componente.productoId);
+
+            const gramosNecesarios =
+
+              Number(componente.cantidadGramos || 0) *
+
+              Number(item.cantidad || 0);
+
+            gramosPedidosPorProducto[idComponente] =
+
+              (
+                gramosPedidosPorProducto[idComponente] || 0
+              ) + gramosNecesarios;
+          }
+
+        /* ---------- GRANEL ---------- */
+
+        } else if (producto.tipoStock === 'granel') {
+
+          if (
+            !producto.variantes ||
+            producto.variantes.length === 0
+          ) {
+
+            return res.status(400).json({
+
+              mensaje:
+                `${producto.nombre} no tiene variantes de referencia cargadas`
+
+            });
+
+          }
+
+          const gramosSolicitados =
+            parsearPesoAGramos(item.peso);
+
+          if (gramosSolicitados <= 0) {
+
+            return res.status(400).json({
+
+              mensaje:
+                `Peso inválido para ${producto.nombre}`
+
+            });
+
+          }
+
+          const varianteTarifa =
+            obtenerVarianteDeTarifa(
+              producto.variantes,
+              gramosSolicitados
+            );
+
+          const precioPorGramo =
+            Number(varianteTarifa.precio) /
+            Number(varianteTarifa.equivalencia || 1);
+
+          // Recalculamos el precio en el servidor: nunca confiamos
+          // en el precio que manda el cliente/frontend.
+          item.precio =
+            Math.round(precioPorGramo * gramosSolicitados);
+
+          const idProducto =
+            String(item.productoId);
+
+          const gramosNecesarios =
+
+            gramosSolicitados *
+            Number(item.cantidad);
+
+          gramosPedidosPorProducto[idProducto] =
+
+            (
+              gramosPedidosPorProducto[idProducto] || 0
+            ) + gramosNecesarios;
+
+        /* ---------- UNIDAD ---------- */
 
         } else {
 
-          /* STOCK GRANEL */
+          const variante =
+            producto.variantes.find(
 
-          let kgNecesarios = 0;
+              v =>
 
-          const texto =
-            variante.peso
-              .toLowerCase()
-              .replace(/\s/g, '');
+                v.peso === item.peso
 
-          if (
-            texto.includes('kg')
-          ) {
-
-            kgNecesarios =
-              Number(
-                texto.replace(
-                  'kg',
-                  ''
-                )
-              );
-
-          } else if (
-            texto.includes('gr')
-          ) {
-
-            kgNecesarios =
-              Number(
-                texto.replace(
-                  'gr',
-                  ''
-                )
-              ) / 1000;
-          }
-
-          const stockDisponible =
-
-            Math.floor(
-
-              Number(
-                producto.stockGranelKg || 0
-              ) / kgNecesarios
             );
 
-          if (
-            stockDisponible <
-            item.cantidad
-          ) {
+          if (!variante) {
 
-            return res.status(400).json({
+            return res.status(404).json({
 
               mensaje:
-                `${producto.nombre} sin stock suficiente`
+                'Variante no encontrada'
+
             });
+
           }
+
+          // Recalculamos el precio en el servidor acá también.
+
+          item.precio =
+            Number(variante.precio || 0);
+
+          const clave =
+
+            `${item.productoId}|${variante._id}`;
+
+          unidadesPedidasPorVariante[clave] =
+
+            (
+              unidadesPedidasPorVariante[clave] || 0
+            ) + Number(item.cantidad || 0);
         }
 
         subtotal +=
+
           Number(item.precio) *
+
           Number(item.cantidad);
+
       }
 
-      /* DESCONTAR STOCK */
+      /* ==========================
+         PASO 2: validar los totales
+         YA ACUMULADOS, antes de tocar
+         nada en la base.
+      ========================== */
 
-      for (const item of items) {
+      for (const idProducto of Object.keys(gramosPedidosPorProducto)) {
 
         const producto =
-          await Producto.findById(
-            item.productoId
-          );
+          await obtenerProducto(idProducto);
 
-        const variante =
-          producto.variantes.find(
+        const gramosPedidos =
+          gramosPedidosPorProducto[idProducto];
 
-            v =>
-              v.peso === item.peso
-          );
+        const stockDisponible =
+          Number(producto.stockGranel || 0);
 
-        if (
-          producto.tipoStock !==
-          'granel'
-        ) {
+        if (stockDisponible < gramosPedidos) {
 
-          variante.stock -=
-            item.cantidad;
+          return res.status(400).json({
 
-        } else {
+            mensaje:
+              `${producto.nombre} sin stock suficiente`
 
-          let kgNecesarios = 0;
-
-          const texto =
-            variante.peso
-              .toLowerCase()
-              .replace(/\s/g, '');
-
-          if (
-            texto.includes('kg')
-          ) {
-
-            kgNecesarios =
-              Number(
-                texto.replace(
-                  'kg',
-                  ''
-                )
-              );
-
-          } else if (
-            texto.includes('gr')
-          ) {
-
-            kgNecesarios =
-              Number(
-                texto.replace(
-                  'gr',
-                  ''
-                )
-              ) / 1000;
-          }
-
-          producto.stockGranelKg -=
-
-            kgNecesarios *
-            item.cantidad;
-        }
-
-        await producto.save();
-      }
-
-      /* GENERAR NRO PEDIDO */
-
-      const ultimoPedido =
-        await Pedido.findOne()
-          .sort({
-            fecha: -1
           });
 
-      let nuevoNumero = 1;
-
-      if (
-        ultimoPedido &&
-        ultimoPedido.nropedido
-      ) {
-
-        nuevoNumero =
-
-          Number(
-            ultimoPedido.nropedido
-          ) + 1;
+        }
       }
 
-      /* ARMAR ITEMS */
+      for (const clave of Object.keys(unidadesPedidasPorVariante)) {
+
+        const [idProducto, idVariante] =
+          clave.split('|');
+
+        const producto =
+          await obtenerProducto(idProducto);
+
+        const variante =
+          producto.variantes.id(idVariante);
+
+        const cantidadPedida =
+          unidadesPedidasPorVariante[clave];
+
+        if (
+
+          Number(variante.stock || 0) <
+
+          cantidadPedida
+
+        ) {
+
+          return res.status(400).json({
+
+            mensaje:
+              `${producto.nombre} sin stock suficiente`
+
+          });
+
+        }
+      }
+
+      /* ==========================
+         PASO 3: recién ahora, con TODO
+         validado, aplicamos los
+         descuentos y guardamos una
+         sola vez por producto.
+      ========================== */
+
+      for (const idProducto of Object.keys(gramosPedidosPorProducto)) {
+
+        const producto =
+          await obtenerProducto(idProducto);
+
+        producto.stockGranel -=
+          gramosPedidosPorProducto[idProducto];
+      }
+
+      for (const clave of Object.keys(unidadesPedidasPorVariante)) {
+
+        const [idProducto, idVariante] =
+          clave.split('|');
+
+        const producto =
+          await obtenerProducto(idProducto);
+
+        const variante =
+          producto.variantes.id(idVariante);
+
+        variante.stock -=
+          unidadesPedidasPorVariante[clave];
+      }
+
+      // Guardamos una sola vez por producto tocado (sea por
+      // descuento directo, granel o unidad, o por haber sido
+      // componente de algún combo).
+
+      for (const producto of Object.values(productosCache)) {
+
+        if (producto && producto.isModified()) {
+
+          await producto.save();
+        }
+      }
+
+      /* ==========================
+         NÚMERO DE PEDIDO
+      ========================== */
+
+      let configuracion =
+        await Configuracion.findOne({});
+
+      if (!configuracion) {
+
+        configuracion =
+          await Configuracion.create({
+
+            nropedido: 1000
+
+          });
+
+      }
+
+      configuracion.nropedido += 1;
+
+      await configuracion.save();
+
+      /* ==========================
+         ARMAR ITEMS
+      ========================== */
 
       const itemsPedido =
+
         items.map(item => ({
 
           productoId:
@@ -259,7 +469,7 @@ router.post(
             item.nombre,
 
           peso:
-            item.peso,
+            item.peso || null,
 
           precio:
             item.precio,
@@ -268,21 +478,31 @@ router.post(
             item.cantidad,
 
           subtotal:
+
             Number(item.precio) *
+
             Number(item.cantidad)
+
         }));
 
       const total =
+
         subtotal +
+
         Number(envio || 0);
 
-      /* CREAR PEDIDO */
+      /* ==========================
+         CREAR PEDIDO
+      ========================== */
 
       const pedido =
         new Pedido({
 
           nropedido:
-            String(nuevoNumero),
+
+            String(
+              configuracion.nropedido
+            ),
 
           cliente,
 
@@ -293,6 +513,7 @@ router.post(
           tipoEntrega,
 
           envio:
+
             Number(envio || 0),
 
           items:
@@ -315,6 +536,7 @@ router.post(
 
         nropedido:
           pedido.nropedido
+
       });
 
     } catch (error) {
@@ -325,9 +547,13 @@ router.post(
 
         mensaje:
           'Error en checkout'
+
       });
+
     }
+
   }
+
 );
 
 module.exports = router;

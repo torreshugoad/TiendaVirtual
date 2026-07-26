@@ -4,6 +4,11 @@ const express =
 const router =
   express.Router();
 
+const auth =
+  require('../middleware/auth');
+
+router.use(auth);
+
 const Pedido =
   require('../models/Pedido');
 

@@ -4,6 +4,9 @@ const router = express.Router();
 
 const multer = require('multer');
 
+const auth =
+  require('../middleware/auth');
+
 const cloudinary =
   require('../config/cloudinary');
 
@@ -40,6 +43,7 @@ const upload =
 
 router.post(
   '/',
+  auth,
   upload.single('imagen'),
 
   async (req, res) => {

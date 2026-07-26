@@ -1,25 +1,48 @@
-const express =
-  require('express');
+const express = require('express');
 
-const router =
-  express.Router();
+const router = express.Router();
 
-const Categoria =
-  require('../models/Categoria');
+const auth = require('../middleware/auth');
 
-router.get('/',
-async (req, res) => {
+const Categoria = require('../models/Categoria');
 
-  const categorias =
-    await Categoria.find()
-      .sort({ orden: 1 });
+router.get('/', async (req, res) => {
 
-  res.json(categorias);
+  try {
+
+    // El catálogo público pide ?activa=true para no mostrar
+    // categorías ocultas. El admin llama sin el parámetro y
+    // sigue viendo todas, para poder gestionarlas.
+
+    const filtro = {};
+
+    if (req.query.activa === 'true') {
+
+      filtro.activa = true;
+    }
+
+    const categorias =
+      await Categoria.find(filtro)
+        .sort({ orden: 1 });
+
+    res.json(categorias);
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      mensaje: 'Error al obtener categorías'
+    });
+
+  }
 
 });
 
-router.post('/',
-async (req, res) => {
+router.post(
+  '/',
+  auth,
+  async (req, res) => {
 
   const categoria =
     new Categoria(req.body);
@@ -30,8 +53,10 @@ async (req, res) => {
 
 });
 
-router.put('/:id',
-async (req, res) => {
+router.put(
+  '/:id',
+  auth,
+  async (req, res) => {
 
   const categoria =
     await Categoria.findByIdAndUpdate(
@@ -48,8 +73,10 @@ async (req, res) => {
 
 });
 
-router.delete('/:id',
-async (req, res) => {
+router.delete(
+  '/:id',
+  auth,
+  async (req, res) => {
 
   await Categoria.findByIdAndDelete(
     req.params.id

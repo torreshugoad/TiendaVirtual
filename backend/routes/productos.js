@@ -2,85 +2,232 @@ const express = require('express');
 
 const router = express.Router();
 
-const Producto =
-  require('../models/Producto');
+const auth = require('../middleware/auth');
 
-/* TODOS LOS PRODUCTOS */
+const Producto = require('../models/Producto');
 
-router.get('/',
-async (req, res) => {
+/* ==========================
+   NORMALIZAR PRODUCTO
+========================== */
+
+function normalizarProducto(data) {
+
+  return {
+
+    nombre:
+      data.nombre?.trim(),
+
+    foto:
+      data.foto || '',
+
+    categoria:
+      data.categoria,
+
+    descripcion:
+      data.descripcion || '',
+
+    orden:
+      Number(data.orden || 0),
+
+    activo:
+
+      data.activo === undefined
+
+        ? true
+
+        : Boolean(data.activo),
+
+    tipoStock:
+      data.tipoStock || 'unidad',
+
+    // Siempre en gramos
+
+    stockGranel:
+      Number(data.stockGranel || 0),
+
+    // Siempre en gramos (umbral de alerta)
+
+    stockMinimoGranel:
+      Number(data.stockMinimoGranel || 0),
+
+    // Solo se usa cuando tipoStock === 'combo'
+
+    precioCombo:
+      Number(data.precioCombo || 0),
+
+    // Solo se usa cuando tipoStock === 'combo'
+
+    componentes:
+
+      (data.componentes || [])
+
+        .filter(c => c.productoId)
+
+        .map(c => ({
+
+          productoId:
+            c.productoId,
+
+          cantidadGramos:
+            Number(c.cantidadGramos || 0)
+
+        })),
+
+    variantes:
+
+      (data.variantes || []).map(v => ({
+
+        peso:
+          v.peso,
+
+        precio:
+          Number(v.precio || 0),
+
+        stock:
+          Number(v.stock || 0),
+
+        // Umbral de alerta por variante
+
+        stockMinimo:
+          Number(v.stockMinimo || 0),
+
+        // Siempre en gramos
+
+        equivalencia:
+          Number(v.equivalencia || 0)
+
+      }))
+
+  };
+
+}
+
+/* ==========================
+   TODOS LOS PRODUCTOS
+========================== */
+
+router.get('/', async (req, res) => {
 
   try {
 
+    // El catálogo público pide ?activo=true para no mostrar
+    // productos ocultos/descontinuados. El admin llama sin el
+    // parámetro y sigue viendo todo, para poder reactivarlos.
+
+    const filtro = {};
+
+    if (req.query.activo === 'true') {
+
+      filtro.activo = true;
+    }
+
     const productos =
-      await Producto.find()
+
+      await Producto.find(filtro)
+
         .populate('categoria')
+
         .sort({ orden: 1 });
 
     res.json(productos);
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.log(error);
 
     res.status(500).json({
+
       mensaje:
         'Error al obtener productos'
+
     });
+
   }
+
 });
 
-/* PRODUCTOS POR CATEGORIA */
+/* ==========================
+   PRODUCTOS POR CATEGORIA
+========================== */
 
-router.get(
-  '/categoria/:id',
+router.get('/categoria/:id', async (req, res) => {
 
-  async (req, res) => {
+  try {
 
-    try {
+    const filtro = {
 
-      const productos =
+      categoria:
+        req.params.id
 
-        await Producto.find({
+    };
 
-          categoria:
-            req.params.id
+    if (req.query.activo === 'true') {
 
-        })
-        .populate('categoria')
-        .sort({ orden: 1 });
+      filtro.activo = true;
+    }
 
-      res.json(productos);
+    const productos =
 
-    } catch (error) {
+      await Producto.find(filtro)
 
-      console.log(error);
+      .populate('categoria')
 
-      res.status(500).json({
+      .sort({
 
-        mensaje:
-          'Error al obtener productos'
+        orden: 1
 
       });
-    }
+
+    res.json(productos);
+
   }
-);
 
-/* CREAR PRODUCTO */
+  catch (error) {
 
-router.post('/',
-async (req, res) => {
+    console.log(error);
+
+    res.status(500).json({
+
+      mensaje:
+        'Error al obtener productos'
+
+    });
+
+  }
+
+});
+
+/* ==========================
+   CREAR PRODUCTO
+========================== */
+
+router.post('/', auth, async (req, res) => {
 
   try {
 
     const producto =
-      new Producto(req.body);
+
+      new Producto(
+
+        normalizarProducto(req.body)
+
+      );
 
     await producto.save();
 
-    res.json(producto);
+    const resultado =
 
-  } catch (error) {
+      await Producto.findById(producto._id)
+
+        .populate('categoria');
+
+    res.json(resultado);
+
+  }
+
+  catch (error) {
 
     console.log(error);
 
@@ -90,61 +237,38 @@ async (req, res) => {
         'Error al crear producto'
 
     });
+
   }
+
 });
 
-/* ELIMINAR PRODUCTO */
+/* ==========================
+   EDITAR PRODUCTO
+========================== */
 
-router.delete('/:id',
-async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
 
   try {
 
-    await Producto.findByIdAndDelete(
-      req.params.id
+    await Producto.findByIdAndUpdate(
+
+      req.params.id,
+
+      normalizarProducto(req.body)
+
     );
-
-    res.json({
-      success: true
-    });
-
-  } catch (error) {
-
-    console.log(error);
-
-    res.status(500).json({
-
-      mensaje:
-        'Error al eliminar producto'
-
-    });
-  }
-});
-
-/* EDITAR PRODUCTO */
-
-router.put('/:id',
-async (req, res) => {
-
-  try {
 
     const producto =
 
-      await Producto.findByIdAndUpdate(
+      await Producto.findById(req.params.id)
 
-        req.params.id,
-
-        req.body,
-
-        {
-          new: true
-        }
-
-      );
+        .populate('categoria');
 
     res.json(producto);
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.log(error);
 
@@ -154,7 +278,46 @@ async (req, res) => {
         'Error al editar producto'
 
     });
+
   }
+
+});
+
+/* ==========================
+   ELIMINAR PRODUCTO
+========================== */
+
+router.delete('/:id', auth, async (req, res) => {
+
+  try {
+
+    await Producto.findByIdAndDelete(
+
+      req.params.id
+
+    );
+
+    res.json({
+
+      success: true
+
+    });
+
+  }
+
+  catch (error) {
+
+    console.log(error);
+
+    res.status(500).json({
+
+      mensaje:
+        'Error al eliminar producto'
+
+    });
+
+  }
+
 });
 
 module.exports = router;

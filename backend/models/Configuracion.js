@@ -1,26 +1,67 @@
 const mongoose = require('mongoose');
 
-const configuracionSchema =
-  new mongoose.Schema({
+const configuracionSchema = new mongoose.Schema({
 
-    envioGratisDesde: Number,
+  nombreTienda: {
+    type: String,
+    default: ''
+  },
 
-    costoEnvio: Number,
+  descripcion: {
+    type: String,
+    default: ''
+  },
 
-    telefonoWhatsapp: String,
+  notaHeader: {
+    type: String,
+    default: ''
+  },
 
-    nombreTienda: String,
+  telefonoWhatsapp: {
+    type: String,
+    default: ''
+  },
 
-nropedido: {
-  type: Number,
-  default: 1000
-},
+  instagram: {
+    type: String,
+    default: ''
+  },
 
-  });
+  facebook: {
+    type: String,
+    default: ''
+  },
 
-module.exports =
-  mongoose.model(
-    'Configuracion',
-    configuracionSchema,
-    'configuracion'
-  );
+  envioGratisDesde: {
+    type: Number,
+    default: 0
+  },
+
+  costoEnvio: {
+    type: Number,
+    default: 0
+  },
+
+  nropedido: {
+    type: Number,
+    default: 1000
+  },
+
+  // Los agregaremos más adelante cuando migremos el login
+  adminUser: {
+    type: String,
+    default: ''
+  },
+
+  adminPassword: {
+    type: String,
+    default: ''
+  }
+
+});
+
+module.exports = mongoose.model(
+  'Configuracion',
+  configuracionSchema,
+  'configuracion'
+);
