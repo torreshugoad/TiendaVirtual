@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Header from '@/components/home/Header';
 import CategoriaGrid from '@/components/home/CategoriaGrid';
 import ProductoList from '@/components/home/ProductoList';
@@ -54,14 +54,67 @@ export default function HomePage() {
     busqueda
   );
 
+  // Indica si ya empujamos una entrada al historial para la subvista actual
+  // (categoría seleccionada o búsqueda activa). Sirve para no apilar una
+  // entrada nueva en cada tecla que se escribe en el buscador.
+  const subvistaPusheada = useRef(false);
+
+  // Vuelve al estado inicial (pantalla de categorías / sin búsqueda).
+  function irAInicio() {
+    setCategoriaSeleccionada(null);
+    limpiarProductos();
+    setBusqueda('');
+    subvistaPusheada.current = false;
+  }
+
+  // Escucha el botón "atrás" físico/gesto del celular (y el del navegador).
+  useEffect(() => {
+    function manejarPopState() {
+      irAInicio();
+    }
+
+    window.addEventListener('popstate', manejarPopState);
+    return () => window.removeEventListener('popstate', manejarPopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cuando el usuario empieza a escribir en el buscador (pasa de vacío a con
+  // texto) empujamos UNA entrada al historial, para que el botón atrás
+  // regrese a la pantalla de categorías.
+  useEffect(() => {
+    if (hayBusqueda && !categoriaSeleccionada && !subvistaPusheada.current) {
+      window.history.pushState({ vista: 'busqueda' }, '');
+      subvistaPusheada.current = true;
+    }
+  }, [hayBusqueda, categoriaSeleccionada]);
+
   function seleccionarCategoria(categoria) {
+    if (!subvistaPusheada.current) {
+      window.history.pushState({ vista: 'categoria' }, '');
+      subvistaPusheada.current = true;
+    }
     setCategoriaSeleccionada(categoria);
     obtenerProductosPorCategoria(categoria._id);
   }
 
+  // Botón "volver" dentro de la UI: dispara history.back() para que sea
+  // exactamente equivalente a presionar el botón atrás del celular.
   function volverCategorias() {
-    setCategoriaSeleccionada(null);
-    limpiarProductos();
+    if (subvistaPusheada.current) {
+      window.history.back();
+    } else {
+      irAInicio();
+    }
+  }
+
+  // Si el usuario borra el texto del buscador a mano (sin usar el botón
+  // atrás), limpiamos también la entrada de historial que habíamos
+  // empujado, para no dejar entradas "fantasma".
+  function manejarCambioBusqueda(valor) {
+    if (valor.trim().length === 0 && subvistaPusheada.current) {
+      window.history.back();
+    }
+    setBusqueda(valor);
   }
 
   return (
@@ -70,7 +123,7 @@ export default function HomePage() {
 
       <main style={styles.main}>
         {!categoriaSeleccionada && (
-          <BuscadorProductos valor={busqueda} onChange={setBusqueda} />
+          <BuscadorProductos valor={busqueda} onChange={manejarCambioBusqueda} />
         )}
 
         {categoriaSeleccionada ? (
