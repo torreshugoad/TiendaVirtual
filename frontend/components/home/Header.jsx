@@ -62,7 +62,7 @@ export default function Header({ configuracion = {}, cantidadCarrito }) {
   // Definición de valores manuales provisionales
   const nombreTiendaManual = "Superbien";
   const descripcionManual = "Tienda de productos Saludables";
-  const notaManual = "¡Aviso: Estamos actualizando nuestro catálogo!";
+  const notaManual = "¡Estamos buscando nuestra mejor oferta para vos!";
 
   return (
     <header style={styles.header}>

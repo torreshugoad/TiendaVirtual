@@ -45,7 +45,7 @@ export default function CategoriaGrid({ categorias, cargando, onSeleccionar }) {
       <h2 style={styles.titulo}>Categorías</h2>
 
       {cargando ? (
-        <div style={styles.cargando}>Cargando categorías...</div>
+        <div style={styles.cargando}>Cargando categorías, ya casi terminamos...</div>
       ) : (
         <div style={styles.grid}>
           {categorias.map((categoria) => {

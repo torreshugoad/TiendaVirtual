@@ -131,6 +131,8 @@ export default function useProductoForm({
 
           stock: '',
 
+          stockMinimo: '',
+
           equivalencia: 0
 
         }
@@ -398,6 +400,10 @@ export default function useProductoForm({
               stock:
 
                 v.stock ?? '',
+
+              stockMinimo:
+
+                v.stockMinimo ?? '',
 
               equivalencia:
 
