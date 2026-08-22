@@ -12,6 +12,7 @@ export default function ProductoCard({ producto, onEditar, onEliminar }) {
     tipoStock,
     variantes = [],
     orden,
+    descripcion,
   } = producto;
 
   const descuentoPorcentaje = Number(producto.descuento || 0);
@@ -77,6 +78,11 @@ export default function ProductoCard({ producto, onEditar, onEliminar }) {
           </span>
         )}
       </div>
+
+      {/* Descripción */}
+      {descripcion && (
+        <p className={styles.descripcion}>{descripcion}</p>
+      )}
 
       {/* Cabecera inferior: categoría / orden / acciones */}
       <div className={styles.header}>

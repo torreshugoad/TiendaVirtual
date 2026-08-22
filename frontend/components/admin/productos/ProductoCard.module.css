@@ -12,6 +12,14 @@
   border-bottom: none;
 }
 
+.descripcion {
+  padding: 0 16px 8px 16px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
 .header {
   display: grid;
   grid-template-columns: 1fr 60px auto;
