@@ -1,0 +1,55 @@
+/*
+  Ubicación: frontend/components/admin/dashboard/DashboardCard.module.css
+  Antes esto vivía como objeto `styles` inline dentro de DashboardCard.jsx.
+  Se saca a un módulo CSS para seguir el mismo criterio que el resto de
+  /admin (composes desde los módulos compartidos cuando aplica).
+  El color de fondo del ícono sigue siendo dinámico (prop `color`), así
+  que ese único valor se sigue pasando inline desde el componente.
+*/
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.icono {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.titulo {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #555;
+}
+
+.subtitulo {
+  color: #999;
+}
+
+.valor {
+  margin-top: 20px;
+  font-size: 34px;
+  font-weight: bold;
+  color: #222;
+}

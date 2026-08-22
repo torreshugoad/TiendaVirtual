@@ -2,6 +2,7 @@
 
 import PedidoRow from './PedidoRow';
 import EmptyState from '@/components/admin/common/EmptyState';
+import styles from './PedidosTable.module.css';
 
 export default function PedidosTable({
   pedidos = [],
@@ -13,17 +14,15 @@ export default function PedidosTable({
   }
 
   return (
-    <div style={styles.container}>
-      <table style={styles.table}>
+    <div className={styles.container}>
+      <table className={styles.table}>
         <thead>
           <tr>
-            <th style={styles.th}>Nº</th>
-            <th style={styles.th}>Fecha</th>
-            <th style={styles.th}>Cliente</th>
-            <th style={styles.th}>Total</th>
-            <th style={styles.th}>Estado</th>
-            <th style={styles.th}>Cambiar Estado</th>
-            <th style={styles.th}>Acciones</th>
+            <th className={styles.th}>Nº</th>
+            <th className={styles.th}>Fecha</th>
+            <th className={styles.th}>Cliente</th>
+            <th className={styles.thRight}>Total</th>
+            <th className={styles.th}>Estado</th>
           </tr>
         </thead>
 
@@ -41,29 +40,3 @@ export default function PedidosTable({
     </div>
   );
 }
-
-const styles = {
-  container: {
-    background: '#fff',
-    borderRadius: 14,
-    overflowX: 'auto',
-    boxShadow: '0 2px 10px rgba(0,0,0,.08)'
-  },
-
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    minWidth: 780
-  },
-
-  th: {
-    padding: 10,
-    background: '#f8fafc',
-    borderBottom: '2px solid #e5e7eb',
-    textAlign: 'left',
-    fontWeight: 600,
-    fontSize: 13,
-    color: '#374151',
-    whiteSpace: 'nowrap'
-  }
-};

@@ -1,0 +1,42 @@
+/*
+  Ubicación: frontend/components/admin/pedidos/PedidosToolbar.module.css
+  Inputs/selects unificados con styles/inputs.module.css (antes tenían
+  border-radius:10px y font-size:14px propios; ahora quedan iguales
+  a Compras/Historial).
+*/
+
+.input {
+  composes: input from '../../../styles/inputs.module.css';
+  min-width: 170px;
+}
+
+.select {
+  composes: select from '../../../styles/inputs.module.css';
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+}
+
+.left {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.right {
+  display: flex;
+  gap: 10px;
+}
+
+.contenidoBoton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

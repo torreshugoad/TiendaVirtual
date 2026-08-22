@@ -1,0 +1,136 @@
+/* Importamos los estilos globales */
+.inputBase {
+  composes: input from '../../../styles/inputs.module.css';
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btnPrimary {
+  composes: btnPrimary from '../../../styles/buttons.module.css';
+  width: 100%;
+}
+
+.btnSecondary {
+  composes: btnSecondary from '../../../styles/buttons.module.css';
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1000;
+}
+
+.drawer {
+  background: #ffffff;
+  width: 100%;
+  max-width: 480px; /* Ancho ajustado para evitar ocupar el 100% en desktops */
+  height: 100%;
+  overflow-y: auto;
+  padding: 1.25rem;
+  box-sizing: border-box;
+  animation: slideIn 0.2s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.drawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.titulo {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  color: #6b7280;
+}
+
+.closeButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.input {
+  composes: inputBase;
+}
+
+.textarea {
+  composes: inputBase;
+  min-height: 80px;
+  resize: vertical;
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  margin: 0.25rem 0;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #015602;
+  cursor: pointer;
+}
+
+.checkboxLabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+  user-select: none;
+  cursor: pointer;
+}
+
+.imagePreview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+  align-self: flex-start;
+}
+
+.textoCargando {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.filaBotones {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.filaBotones .btnPrimary,
+.filaBotones .btnSecondary {
+  width: auto;
+  flex: 1;
+  margin-top: 0;
+}

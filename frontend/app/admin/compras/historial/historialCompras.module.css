@@ -1,0 +1,266 @@
+/*
+  Ubicación: frontend/app/admin/compras/historial/historialCompras.module.css
+  Botones/iconButton/inputs ahora se toman de styles/buttons.module.css y
+  styles/inputs.module.css (única fuente de verdad). Este archivo queda
+  sólo con el layout propio de la pantalla de historial.
+
+  Nota: .badge acá sigue sin variantes de color (borrador/confirmada/
+  anulada) porque no tengo historialCompras.jsx para confirmar cómo se
+  aplica el color hoy (¿inline style, clases separadas?). Si me pasás
+  ese archivo lo unifico también con los badgeBorrador/badgeConfirmada/
+  badgeAnulada que ya existen en buttons.module.css.
+*/
+
+.btnPrimary {
+  composes: btnPrimary from '../../../../styles/buttons.module.css';
+}
+
+.btnSecondary {
+  composes: btnSecondary from '../../../../styles/buttons.module.css';
+}
+
+.iconButton {
+  composes: iconButton from '../../../../styles/buttons.module.css';
+}
+
+.linkButtonBase {
+  composes: linkButtonBase from '../../../../styles/buttons.module.css';
+}
+
+.filterInput {
+  composes: input from '../../../../styles/inputs.module.css';
+}
+
+.container {
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+  max-width: 1100px;
+}
+
+.headerSection {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.title {
+  margin: 0;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filtersContainer {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.errorText {
+  color: crimson;
+}
+
+.loadingText {
+  color: #666;
+}
+
+.tableWrapper {
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.9rem;
+}
+
+.tableInner {
+  min-width: 780px;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr 0.6fr 1fr 1.2fr 1fr;
+  gap: 0.5rem;
+  text-align: left;
+  background: #f5f5f5;
+  border-bottom: 2px solid #e2e2e2;
+  padding: 0.6rem 0.75rem;
+  font-weight: 600;
+}
+
+.tableHeaderRight {
+  text-align: right;
+}
+
+.tableRowEven {
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.tableRowOdd {
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+}
+
+.tableRowContent {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr 0.6fr 1fr 1.2fr 1fr;
+  padding: 0.65rem 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tableCellRight {
+  text-align: right;
+  font-weight: 500;
+}
+
+.badge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  display: inline-block;
+  min-width: 85px;
+  text-align: center;
+}
+
+.badgeBorrador {
+  composes: badgeBorrador from '../../../../styles/buttons.module.css';
+}
+
+.badgeConfirmada {
+  composes: badgeConfirmada from '../../../../styles/buttons.module.css';
+}
+
+.badgeAnulada {
+  composes: badgeAnulada from '../../../../styles/buttons.module.css';
+}
+
+.actionsContainer {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+/*
+  Links de "editar/ver" cuya única diferencia es el color (según si la
+  compra está en borrador o no). A propósito NO usan composes hacia
+  btnSecondary/linkButtonBase: ya vimos que encadenar composes con
+  propiedades que se pisan (border, color) puede quedar en un orden de
+  carga ambiguo. Para variantes condicionadas por dato, es más seguro
+  escribir la clase completa acá.
+*/
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  padding: 0.35rem;
+  cursor: pointer;
+  transition: background-color 150ms ease-in-out, opacity 150ms ease-in-out;
+}
+
+.actionLinkEditar {
+  composes: actionLink;
+  border: 1px solid #0d6efd;
+  color: #0d6efd;
+}
+
+.actionLinkVer {
+  composes: actionLink;
+  border: 1px solid #ccc;
+  color: #555;
+}
+
+.expandedSection {
+  background-color: #f9f9f9;
+  padding: 1rem;
+  margin: 0 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.expandedTitle {
+  margin: 0 0 0.5rem 0;
+  color: #000000;
+}
+
+.expandedTable {
+  width: 95%;
+  margin-bottom: 0;
+  background: #fff;
+  border: 1px solid #0f0052;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  border-collapse: collapse;
+}
+
+.expandedTableHeader {
+  text-align: left;
+  border-bottom: 1px solid #1d025c;
+  background: #f2f2f2;
+}
+
+.expandedTh {
+  padding: 0.5rem;
+}
+
+.expandedThRight {
+  padding: 0.5rem;
+  text-align: right;
+}
+
+.expandedTr {
+  border-bottom: 1px solid #a69acf;
+}
+
+.expandedTd {
+  padding: 0.5rem;
+}
+
+.expandedTdRight {
+  padding: 0.5rem;
+  text-align: right;
+}
+
+.emptyProducts {
+  padding: 0.5rem;
+  color: #777;
+}
+
+.emptyState {
+  padding: 1rem;
+  text-align: center;
+  color: #777;
+}
+
+/* --- Badges de estado (unificados con buttons.module.css) --- */
+
+.badgeBorrador {
+  composes: badgeBorrador from '../../../../styles/buttons.module.css';
+}
+
+.badgeConfirmada {
+  composes: badgeConfirmada from '../../../../styles/buttons.module.css';
+}
+
+.badgeAnulada {
+  composes: badgeAnulada from '../../../../styles/buttons.module.css';
+}
+
+/*
+  Variantes del link de acción (Editar/Ver compra). Son específicas de
+  esta pantalla, por eso quedan acá y no en buttons.module.css. Antes se
+  aplicaban con `style={{ border, color }}` inline según el estado.
+*/
+.linkEdit {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+.linkView {
+  border-color: #ccc;
+  color: #555;
+}

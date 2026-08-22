@@ -1,0 +1,64 @@
+/* Importamos estilos globales de inputs */
+.inputBase {
+  composes: input from '../../../styles/inputs.module.css';
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tituloSeccion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.hr {
+  margin: 1.25rem 0;
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.campoArea {
+  composes: campo;
+  margin-top: 0.75rem;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.textarea {
+  composes: inputBase;
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.footer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.contenidoBoton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}

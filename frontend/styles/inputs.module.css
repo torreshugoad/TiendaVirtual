@@ -1,0 +1,21 @@
+/*
+  Ubicación: frontend/styles/inputs.module.css
+  Fuente única para inputs y selects de texto/número/fecha en toda la app.
+  Valor "ganador" tomado de historialCompras / ComprasForm (el que ya
+  usábamos como modelo). Cualquier componente que necesite un input o
+  select hace composes desde acá, y sólo agrega encima lo que sea
+  puntual de ese lugar (ej. un min-width).
+*/
+
+.input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: #fff;
+  font-family: inherit;
+}
+
+.select {
+  composes: input;
+}

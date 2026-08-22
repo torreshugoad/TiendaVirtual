@@ -1,0 +1,173 @@
+/*
+  Ubicación: frontend/app/admin/stock/stock.module.css
+  Antes esta página no tenía módulo propio: todo vivía en objetos de
+  estilo inline (th, td, input, inputChico) y style={{...}} sueltos en
+  el JSX. Se estandariza con el mismo criterio que dashboard/reportes/
+  pedidos: layout propio acá, select/input/botones componen desde
+  styles/inputs.module.css y styles/buttons.module.css.
+
+  El color de fondo dinámico según stock (rojo/amarillo/verde) sigue
+  siendo inline en el componente porque depende de datos por fila, no
+  se puede resolver en un módulo estático.
+*/
+
+.container {
+  padding: 14px;
+  background: #f3f4f6;
+  min-height: 100vh;
+}
+
+.headerContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 18px;
+  margin: 0;
+}
+
+.btnSecondary {
+  composes: btnSecondary from '../../../styles/buttons.module.css';
+  width: fit-content;
+}
+
+/* --- Filtros --- */
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 10px;
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+}
+
+.input {
+  composes: input from '../../../styles/inputs.module.css';
+}
+
+.select {
+  composes: select from '../../../styles/inputs.module.css';
+}
+
+.inputStockMenor {
+  composes: input;
+  width: 50px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* --- Acción guardar --- */
+
+.footerGuardar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.guardarInferior {
+  margin-top: 12px;
+}
+
+/* --- Tabla --- */
+
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.tabla {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+}
+
+.th {
+  padding: 10px;
+  background: #f8fafc;
+  border-bottom: 2px solid #e5e7eb;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.thRight {
+  composes: th;
+  text-align: right;
+  width: 70px;
+}
+
+.td {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.tdProducto {
+  composes: td;
+  font-weight: bold;
+}
+
+.tdRight {
+  composes: td;
+  text-align: right;
+}
+
+.fila {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.fila:nth-child(even) {
+  background: #f9fafb;
+}
+
+.fila:nth-child(odd) {
+  background: #ffffff;
+}
+
+.inputStock {
+  composes: input;
+  width: 64px;
+  text-align: right;
+  font-weight: bold;
+}
+
+.variantesContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.variante {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.variantePeso {
+  color: #6b7280;
+}
+
+.inputPrecio {
+  composes: input;
+  width: 64px;
+  text-align: right;
+  font-weight: bold;
+}

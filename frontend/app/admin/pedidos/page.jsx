@@ -4,13 +4,17 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { LayoutDashboard } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
 import useAdminAuth from '@/hooks/useAdminAuth';
+import usePeriodo from '@/hooks/usePeriodo';
 import PedidosToolbar from '@/components/admin/pedidos/PedidosToolbar';
 import PedidosTable from '@/components/admin/pedidos/PedidosTable';
 import PedidoDetalle from '@/components/admin/pedidos/PedidoDetalle';
+import styles from './pedidos.module.css';
 
 export default function AdminPedidos() {
   const loading = useAdminAuth();
@@ -21,8 +25,15 @@ export default function AdminPedidos() {
 
   const [textoBusqueda, setTextoBusqueda] = useState('');
   const [estadoFiltro, setEstadoFiltro] = useState('todos');
-  const [fechaDesde, setFechaDesde] = useState('');
-  const [fechaHasta, setFechaHasta] = useState('');
+
+  const {
+    tipo,
+    setTipo,
+    fechaInicio,
+    setFechaInicio,
+    fechaFin,
+    setFechaFin
+  } = usePeriodo('semana');
 
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
 
@@ -86,12 +97,12 @@ export default function AdminPedidos() {
 
     const fechaPedido = new Date(pedido.fecha);
 
-    const coincideDesde = fechaDesde
-      ? fechaPedido >= new Date(fechaDesde)
+    const coincideDesde = fechaInicio
+      ? fechaPedido >= new Date(fechaInicio)
       : true;
 
-    const coincideHasta = fechaHasta
-      ? fechaPedido <= new Date(`${fechaHasta}T23:59:59`)
+    const coincideHasta = fechaFin
+      ? fechaPedido <= new Date(`${fechaFin}T23:59:59`)
       : true;
 
     return coincideBusqueda && coincideEstado && coincideDesde && coincideHasta;
@@ -173,7 +184,7 @@ export default function AdminPedidos() {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     });
 
-    saveAs(data, 'pedidos.xlsx');
+    saveAs(data, `pedidos_${fechaInicio}_a_${fechaFin}.xlsx`);
   }
 
   if (loading) {
@@ -181,25 +192,13 @@ export default function AdminPedidos() {
   }
 
   return (
-    <main
-      style={{
-        padding: 20,
-        fontFamily: 'Arial',
-        background: '#f7f7f7',
-        minHeight: '100vh'
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 20,
-          flexWrap: 'wrap',
-          gap: 10
-        }}
-      >
-        <h1 style={{ margin: 0 }}>Pedidos</h1>
+    <main className={styles.page}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>Pedidos</h1>
+        <Link href="/admin" className={styles.btnSecondary}>
+          <LayoutDashboard size={15} />
+          Panel Administrador
+        </Link>
       </div>
 
       <PedidosToolbar
@@ -207,10 +206,12 @@ export default function AdminPedidos() {
         setTextoBusqueda={setTextoBusqueda}
         estadoFiltro={estadoFiltro}
         setEstadoFiltro={setEstadoFiltro}
-        fechaDesde={fechaDesde}
-        setFechaDesde={setFechaDesde}
-        fechaHasta={fechaHasta}
-        setFechaHasta={setFechaHasta}
+        tipo={tipo}
+        setTipo={setTipo}
+        fechaInicio={fechaInicio}
+        setFechaInicio={setFechaInicio}
+        fechaFin={fechaFin}
+        setFechaFin={setFechaFin}
         onActualizar={obtenerPedidos}
         onExportar={exportarExcel}
       />

@@ -13,6 +13,7 @@ export default function useCategoriaForm() {
   const [editandoId, setEditandoId] = useState(null);
   const [formulario, setFormulario] = useState(FORMULARIO_VACIO);
   const [subiendoImagen, setSubiendoImagen] = useState(false);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -57,20 +58,30 @@ export default function useCategoriaForm() {
       orden: categoria.orden,
       activa: categoria.activa,
     });
+    setMostrarFormulario(true);
+  }
+
+  function abrirNuevo() {
+    setEditandoId(null);
+    setFormulario(FORMULARIO_VACIO);
+    setMostrarFormulario(true);
   }
 
   function resetFormulario() {
     setEditandoId(null);
     setFormulario(FORMULARIO_VACIO);
+    setMostrarFormulario(false);
   }
 
   return {
     formulario,
     editandoId,
     subiendoImagen,
+    mostrarFormulario,
     handleChange,
     subirImagen,
     iniciarEdicion,
+    abrirNuevo,
     resetFormulario,
   };
 }

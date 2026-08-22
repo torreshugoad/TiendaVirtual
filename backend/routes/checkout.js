@@ -2,6 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 
+const authOpcional = require('../middleware/authOpcional');
+
 const Producto =
   require('../models/Producto');
 
@@ -62,8 +64,121 @@ function obtenerVarianteDeTarifa(variantes, gramos) {
   return elegida;
 }
 
+/* ==========================
+   Aplica el descuento cargado desde el carrito manual sobre
+   el precio base YA calculado en el servidor.
+
+   Nunca confiamos en el "descuentoMonto" que pueda mandar el
+   cliente: acá lo recalculamos siempre a partir del tipo/valor,
+   igual que se recalcula el precio base en cada rama de arriba.
+
+   tipo: 'porcentaje' | 'monto'. Cualquier otro valor se ignora
+   (se trata como sin descuento).
+========================== */
+
+function calcularPrecioConDescuento(precioBase, tipo, valorCrudo) {
+
+  const valor = Number(valorCrudo || 0);
+
+  if (!valor || valor <= 0 || (tipo !== 'porcentaje' && tipo !== 'monto')) {
+
+    return {
+      precioOriginal: precioBase,
+      descuentoTipo: null,
+      descuentoValor: 0,
+      descuentoMonto: 0,
+      precioFinal: precioBase
+    };
+  }
+
+  let descuentoMonto =
+    tipo === 'monto'
+      ? Math.round(valor)
+      : Math.round((precioBase * valor) / 100);
+
+  // El descuento nunca puede ser negativo ni superar el precio base.
+  descuentoMonto = Math.min(Math.max(descuentoMonto, 0), precioBase);
+
+  return {
+    precioOriginal: precioBase,
+    descuentoTipo: tipo,
+    descuentoValor: valor,
+    descuentoMonto,
+    precioFinal: precioBase - descuentoMonto
+  };
+}
+
+/* ==========================
+   Combina, en cascada, los DOS descuentos que puede tener
+   una línea del pedido:
+
+   1) PROMOCIÓN: viene de producto.descuento (porcentaje
+      cargado en el catálogo, visible para el cliente en la
+      tienda). Se aplica siempre que el producto la tenga,
+      sea carrito manual o compra normal del cliente.
+
+   2) MANUAL: el que carga el vendedor a mano en el carrito
+      manual (item.descuentoTipo / item.descuentoValor). Se
+      aplica DESPUÉS, sobre el precio que ya tiene la promoción
+      aplicada.
+
+   Nunca se confía en nada que mande el cliente salvo el tipo/
+   valor del descuento manual (el monto siempre se recalcula acá).
+========================== */
+
+function aplicarDescuentos(precioBase, producto, item, vendedorAutenticado) {
+
+  const descuentoPromocionPct =
+    Number(producto.descuento || 0);
+
+  const promocion =
+    calcularPrecioConDescuento(
+      precioBase,
+      descuentoPromocionPct > 0 ? 'porcentaje' : null,
+      descuentoPromocionPct
+    );
+
+  // El descuento MANUAL solo existe en el carrito del vendedor, y
+  // solo debe confiarse si la request viene con una sesión válida
+  // (req.usuario). Cualquier descuentoTipo/descuentoValor que
+  // mande un cliente sin login se ignora acá, sin importar qué
+  // valor traiga.
+  const manual =
+    vendedorAutenticado
+      ? calcularPrecioConDescuento(
+          promocion.precioFinal,
+          item.descuentoTipo,
+          item.descuentoValor
+        )
+      : calcularPrecioConDescuento(
+          promocion.precioFinal,
+          null,
+          0
+        );
+
+  return {
+    // Precio de lista, sin ningún descuento.
+    precioOriginal: precioBase,
+
+    // Promoción del producto (snapshot al momento de la compra).
+    descuentoPromocion: promocion.descuentoValor,
+    montoPromocion: promocion.descuentoMonto,
+    precioConPromocion: promocion.precioFinal,
+
+    // Descuento manual del vendedor, aplicado sobre el precio
+    // que ya tenía la promoción descontada.
+    descuentoTipo: manual.descuentoTipo,
+    descuentoValor: manual.descuentoValor,
+    descuentoMonto: manual.descuentoMonto,
+
+    // Precio final: el que se cobra y se usa para el subtotal.
+    precioFinal: manual.precioFinal
+  };
+}
+
 router.post(
   '/',
+  authOpcional,
   async (req, res) => {
 
     try {
@@ -75,9 +190,21 @@ router.post(
         direccion,
         tipoEntrega,
         envio,
-        items
+        items,
+        cartId
 
       } = req.body;
+
+      if (!cartId) {
+
+        return res.status(400).json({
+
+          mensaje:
+            'Falta cartId'
+
+        });
+
+      }
 
       if (
         !items ||
@@ -88,6 +215,32 @@ router.post(
 
           mensaje:
             'Carrito vacío'
+
+        });
+
+      }
+
+      /* ==========================
+         CHEQUEO DE IDEMPOTENCIA
+         Si este carrito ya generó un pedido (otra pestaña,
+         doble click, reintento de red), devolvemos ESE pedido
+         sin volver a tocar stock ni crear uno nuevo.
+      ========================== */
+
+      const pedidoExistente =
+        await Pedido.findOne({ cartId });
+
+      if (pedidoExistente) {
+
+        return res.json({
+
+          success: true,
+
+          pedidoId:
+            pedidoExistente._id,
+
+          nropedido:
+            pedidoExistente.nropedido
 
         });
 
@@ -171,8 +324,33 @@ router.post(
           // Precio del combo: siempre el de oferta cargado en el
           // producto, nunca el que manda el cliente.
 
-          item.precio =
+          const precioBaseCombo =
             Number(producto.precioCombo || 0);
+
+          const {
+            precioOriginal,
+            descuentoPromocion,
+            montoPromocion,
+            precioConPromocion,
+            descuentoTipo,
+            descuentoValor,
+            descuentoMonto,
+            precioFinal
+          } = aplicarDescuentos(
+            precioBaseCombo,
+            producto,
+            item,
+            Boolean(req.usuario)
+          );
+
+          item.precioOriginal = precioOriginal;
+          item.descuentoPromocion = descuentoPromocion;
+          item.montoPromocion = montoPromocion;
+          item.precioConPromocion = precioConPromocion;
+          item.descuentoTipo = descuentoTipo;
+          item.descuentoValor = descuentoValor;
+          item.descuentoMonto = descuentoMonto;
+          item.precio = precioFinal;
 
           for (const componente of producto.componentes) {
 
@@ -263,8 +441,33 @@ router.post(
 
           // Recalculamos el precio en el servidor: nunca confiamos
           // en el precio que manda el cliente/frontend.
-          item.precio =
+          const precioBaseGranel =
             Math.round(precioPorGramo * gramosSolicitados);
+
+          const {
+            precioOriginal: precioOriginalGranel,
+            descuentoPromocion: descuentoPromocionGranel,
+            montoPromocion: montoPromocionGranel,
+            precioConPromocion: precioConPromocionGranel,
+            descuentoTipo: descuentoTipoGranel,
+            descuentoValor: descuentoValorGranel,
+            descuentoMonto: descuentoMontoGranel,
+            precioFinal: precioFinalGranel
+          } = aplicarDescuentos(
+            precioBaseGranel,
+            producto,
+            item,
+            Boolean(req.usuario)
+          );
+
+          item.precioOriginal = precioOriginalGranel;
+          item.descuentoPromocion = descuentoPromocionGranel;
+          item.montoPromocion = montoPromocionGranel;
+          item.precioConPromocion = precioConPromocionGranel;
+          item.descuentoTipo = descuentoTipoGranel;
+          item.descuentoValor = descuentoValorGranel;
+          item.descuentoMonto = descuentoMontoGranel;
+          item.precio = precioFinalGranel;
 
           const idProducto =
             String(item.productoId);
@@ -306,8 +509,33 @@ router.post(
 
           // Recalculamos el precio en el servidor acá también.
 
-          item.precio =
+          const precioBaseUnidad =
             Number(variante.precio || 0);
+
+          const {
+            precioOriginal: precioOriginalUnidad,
+            descuentoPromocion: descuentoPromocionUnidad,
+            montoPromocion: montoPromocionUnidad,
+            precioConPromocion: precioConPromocionUnidad,
+            descuentoTipo: descuentoTipoUnidad,
+            descuentoValor: descuentoValorUnidad,
+            descuentoMonto: descuentoMontoUnidad,
+            precioFinal: precioFinalUnidad
+          } = aplicarDescuentos(
+            precioBaseUnidad,
+            producto,
+            item,
+            Boolean(req.usuario)
+          );
+
+          item.precioOriginal = precioOriginalUnidad;
+          item.descuentoPromocion = descuentoPromocionUnidad;
+          item.montoPromocion = montoPromocionUnidad;
+          item.precioConPromocion = precioConPromocionUnidad;
+          item.descuentoTipo = descuentoTipoUnidad;
+          item.descuentoValor = descuentoValorUnidad;
+          item.descuentoMonto = descuentoMontoUnidad;
+          item.precio = precioFinalUnidad;
 
           const clave =
 
@@ -474,6 +702,27 @@ router.post(
           precio:
             item.precio,
 
+          precioOriginal:
+            item.precioOriginal,
+
+          descuentoPromocion:
+            item.descuentoPromocion,
+
+          montoPromocion:
+            item.montoPromocion,
+
+          precioConPromocion:
+            item.precioConPromocion,
+
+          descuentoTipo:
+            item.descuentoTipo,
+
+          descuentoValor:
+            item.descuentoValor,
+
+          descuentoMonto:
+            item.descuentoMonto,
+
           cantidad:
             item.cantidad,
 
@@ -504,6 +753,8 @@ router.post(
               configuracion.nropedido
             ),
 
+          cartId,
+
           cliente,
 
           telefono,
@@ -525,7 +776,38 @@ router.post(
 
         });
 
-      await pedido.save();
+      try {
+
+        await pedido.save();
+
+      } catch (errorGuardado) {
+
+        // Carrera: otro request con el MISMO cartId ya guardó
+        // su pedido entre nuestro chequeo de arriba y este save.
+        // El índice único de Mongo lo detecta acá. Devolvemos
+        // el pedido que ganó la carrera, sin duplicar nada.
+
+        if (errorGuardado.code === 11000) {
+
+          const pedidoYaCreado =
+            await Pedido.findOne({ cartId });
+
+          return res.json({
+
+            success: true,
+
+            pedidoId:
+              pedidoYaCreado._id,
+
+            nropedido:
+              pedidoYaCreado.nropedido
+
+          });
+
+        }
+
+        throw errorGuardado;
+      }
 
       res.json({
 

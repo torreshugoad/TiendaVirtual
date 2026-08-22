@@ -1,0 +1,198 @@
+.btnPrimary {
+  composes: btnPrimary from '../../../styles/buttons.module.css';
+}
+
+.btnSecondary {
+  composes: btnSecondary from '../../../styles/buttons.module.css';
+}
+
+.btnDanger {
+  composes: btnDanger from '../../../styles/buttons.module.css';
+}
+
+.btnGhost {
+  composes: btnGhost from '../../../styles/buttons.module.css';
+}
+
+.btnSmall {
+  composes: btnSmall from '../../../styles/buttons.module.css';
+}
+
+.linkButtonBase {
+  composes: linkButtonBase from '../../../styles/buttons.module.css';
+}
+
+.badge {
+  composes: badge from '../../../styles/buttons.module.css';
+}
+
+.badgeBorrador {
+  composes: badgeBorrador from '../../../styles/buttons.module.css';
+}
+
+.badgeConfirmada {
+  composes: badgeConfirmada from '../../../styles/buttons.module.css';
+}
+
+.badgeAnulada {
+  composes: badgeAnulada from '../../../styles/buttons.module.css';
+}
+
+.input {
+  composes: input from '../../../styles/inputs.module.css';
+}
+
+.select {
+  composes: select from '../../../styles/inputs.module.css';
+}
+
+.btnConfirmar {
+  font-weight: 700;
+}
+
+/* --- Layout general --- */
+
+.page {
+  padding: 1.5rem;
+  display: grid;
+  gap: 1.25rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* --- Encabezado reestructurado --- */
+
+.headerContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+}
+
+.readOnlyNote {
+  margin-left: 8px;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.errorText {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.loadingScreen {
+  padding: 1.5rem;
+}
+
+/* --- Toolbar sticky de acciones --- */
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+  z-index: 10;
+}
+
+.toolbarActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* --- Datos generales (proveedor / factura) --- */
+
+.formRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* --- Cargos (flete, impuestos, otros) --- */
+
+.cargosBox {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.cargosHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cargosTitle {
+  font-size: 0.9rem;
+}
+
+.cargosEmpty {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.cargoRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cargoDescripcion {
+  flex: 1;
+}
+
+.cargoMonto {
+  width: 120px;
+}
+
+/* --- Selector de producto a agregar --- */
+
+.itemsToolbar {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Adaptación para pantallas chicas */
+@media (max-width: 640px) {
+  .page {
+    padding: 0.75rem;
+  }
+
+  .formRow,
+  .itemsToolbar {
+    flex-direction: column;
+  }
+
+  .cargoRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cargoMonto {
+    width: 100%;
+  }
+}

@@ -1,0 +1,64 @@
+/*
+  Ubicación: frontend/components/admin/pedidos/PedidosTable.module.css
+  Compartido entre PedidosTable.jsx y PedidoRow.jsx (misma tabla).
+  .iconButton unificado con styles/buttons.module.css (antes tenía
+  border-radius:8px y color:#6b7280 propios; ahora es el mismo botón
+  ícono que usa el resto de la app).
+*/
+
+.iconButton {
+  composes: iconButton from '../../../styles/buttons.module.css';
+}
+
+.container {
+  background: #fff;
+  border-radius: 14px;
+  overflow-x: auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 780px;
+}
+
+.th {
+  padding: 10px;
+  background: #f8fafc;
+  border-bottom: 2px solid #e5e7eb;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.thRight {
+  composes: th;
+  text-align: right;
+}
+
+.td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+.tdRight {
+  composes: td;
+  text-align: right;
+}
+
+.estadoConAcciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.acciones {
+  display: flex;
+  gap: 6px;
+}

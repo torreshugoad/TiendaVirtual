@@ -1,381 +1,155 @@
 'use client';
 
+import { Store, Phone, Truck, Package, Save } from 'lucide-react';
 import Card from '@/components/admin/common/Card';
 import Button from '@/components/admin/common/Button';
+import styles from './ConfiguracionForm.module.css';
 
 export default function ConfiguracionForm({
-
-  configuracion,
-
+  configuracion = {},
   actualizarCampo,
-
   onGuardar,
-
   saving
-
 }) {
-
   function handleChange(e) {
-
     const { name, value } = e.target;
-
     actualizarCampo(name, value);
-
   }
 
   return (
-
     <Card>
-
-      {/* ===========================
-          INFORMACIÓN DE LA TIENDA
-      ============================ */}
-
-      <h2 style={styles.titulo}>
-
-        🏪 Información de la tienda
-
+      {/* INFORMACIÓN DE LA TIENDA */}
+      <h2 className={styles.tituloSeccion}>
+        <Store size={20} />
+        Información de la tienda
       </h2>
 
-      <div style={styles.grid}>
-
+      <div className={styles.grid}>
         <Campo
-
           label="Nombre de la tienda"
-
           name="nombreTienda"
-
-          value={configuracion.nombreTienda || ''}
-
+          value={configuracion?.nombreTienda ?? ''}
           onChange={handleChange}
-
         />
 
         <Campo
-
           label="Descripción"
-
           name="descripcion"
-
-          value={configuracion.descripcion || ''}
-
+          value={configuracion?.descripcion ?? ''}
           onChange={handleChange}
-
         />
-
       </div>
 
       <CampoArea
-
         label="Mensaje principal"
-
         name="notaHeader"
-
-        value={configuracion.notaHeader || ''}
-
+        value={configuracion?.notaHeader ?? ''}
         onChange={handleChange}
-
       />
 
-      <hr style={styles.hr} />
+      <hr className={styles.hr} />
 
-      {/* ===========================
-          CONTACTO
-      ============================ */}
-
-      <h2 style={styles.titulo}>
-
-        📞 Contacto
-
+      {/* CONTACTO */}
+      <h2 className={styles.tituloSeccion}>
+        <Phone size={20} />
+        Contacto
       </h2>
 
-      <div style={styles.grid}>
-
+      <div className={styles.grid}>
         <Campo
-
           label="WhatsApp"
-
           name="telefonoWhatsapp"
-
-          value={configuracion.telefonoWhatsapp || ''}
-
+          value={configuracion?.telefonoWhatsapp ?? ''}
           onChange={handleChange}
-
         />
 
         <Campo
-
           label="Instagram"
-
           name="instagram"
-
-          value={configuracion.instagram || ''}
-
+          value={configuracion?.instagram ?? ''}
           onChange={handleChange}
-
         />
 
         <Campo
-
           label="Facebook"
-
           name="facebook"
-
-          value={configuracion.facebook || ''}
-
+          value={configuracion?.facebook ?? ''}
           onChange={handleChange}
-
         />
-
       </div>
 
-      <hr style={styles.hr} />
+      <hr className={styles.hr} />
 
-      {/* ===========================
-          ENVÍOS
-      ============================ */}
-
-      <h2 style={styles.titulo}>
-
-        🚚 Envíos
-
+      {/* ENVÍOS */}
+      <h2 className={styles.tituloSeccion}>
+        <Truck size={20} />
+        Envíos
       </h2>
 
-      <div style={styles.grid}>
-
+      <div className={styles.grid}>
         <Campo
-
           label="Costo de envío"
-
           type="number"
-
           name="costoEnvio"
-
-          value={configuracion.costoEnvio ?? 0}
-
+          value={configuracion?.costoEnvio ?? 0}
           onChange={handleChange}
-
         />
 
         <Campo
-
           label="Envío gratis desde"
-
           type="number"
-
           name="envioGratisDesde"
-
-          value={configuracion.envioGratisDesde ?? 0}
-
+          value={configuracion?.envioGratisDesde ?? 0}
           onChange={handleChange}
-
         />
-
       </div>
 
-      <div style={styles.footer}>
+      <hr className={styles.hr} />
 
-        <Button
+      {/* PEDIDOS */}
+      <h2 className={styles.tituloSeccion}>
+        <Package size={20} />
+        Nro. Pedido
+      </h2>
 
-          onClick={onGuardar}
+      <div className={styles.grid}>
+        <Campo
+          label="Número pedido inicial / actual"
+          type="number"
+          name="nropedido"
+          value={configuracion?.nropedido ?? 0}
+          onChange={handleChange}
+        />
+      </div>
 
-          disabled={saving}
-
-        >
-
-          {
-
-            saving
-
-              ? 'Guardando...'
-
-              : '💾 Guardar cambios'
-
-          }
-
+      <div className={styles.footer}>
+        <Button onClick={onGuardar} disabled={saving}>
+          <span className={styles.contenidoBoton}>
+            <Save size={18} />
+            {saving ? 'Guardando...' : 'Guardar cambios'}
+          </span>
         </Button>
-
       </div>
-
     </Card>
-
   );
-
 }
 
-/* ===========================
-   COMPONENTES AUXILIARES
-=========================== */
+/* COMPONENTES AUXILIARES */
 
-function Campo({
-
-  label,
-
-  ...props
-
-}) {
-
+function Campo({ label, ...props }) {
   return (
-
-    <div style={styles.campo}>
-
-      <label style={styles.label}>
-
-        {label}
-
-      </label>
-
-      <input
-
-        {...props}
-
-        style={styles.input}
-
-      />
-
+    <div className={styles.campo}>
+      <label className={styles.label}>{label}</label>
+      <input {...props} className={styles.inputBase} />
     </div>
-
   );
-
 }
 
-function CampoArea({
-
-  label,
-
-  ...props
-
-}) {
-
+function CampoArea({ label, ...props }) {
   return (
-
-    <div style={styles.campoArea}>
-
-      <label style={styles.label}>
-
-        {label}
-
-      </label>
-
-      <textarea
-
-        {...props}
-
-        rows={4}
-
-        style={styles.textarea}
-
-      />
-
+    <div className={styles.campoArea}>
+      <label className={styles.label}>{label}</label>
+      <textarea {...props} rows={3} className={styles.textarea} />
     </div>
-
   );
-
 }
-
-/* ===========================
-   ESTILOS
-=========================== */
-
-const styles = {
-
-  titulo: {
-
-    marginBottom: 18,
-
-    fontSize: 20,
-
-    fontWeight: 700,
-
-    color: '#1f2937'
-
-  },
-
-  hr: {
-
-    margin: '30px 0',
-
-    border: 0,
-
-    borderTop: '1px solid #e5e7eb'
-
-  },
-
-  grid: {
-
-    display: 'grid',
-
-    gridTemplateColumns:
-      'repeat(auto-fit,minmax(260px,1fr))',
-
-    gap: 20
-
-  },
-
-  campo: {
-
-    display: 'flex',
-
-    flexDirection: 'column',
-
-    gap: 6
-
-  },
-
-  campoArea: {
-
-    display: 'flex',
-
-    flexDirection: 'column',
-
-    gap: 6,
-
-    marginTop: 20
-
-  },
-
-  label: {
-
-    fontWeight: 600,
-
-    color: '#374151'
-
-  },
-
-  input: {
-
-    padding: 10,
-
-    border: '1px solid #d1d5db',
-
-    borderRadius: 8,
-
-    fontSize: 15
-
-  },
-
-  textarea: {
-
-    padding: 10,
-
-    border: '1px solid #d1d5db',
-
-    borderRadius: 8,
-
-    resize: 'vertical',
-
-    fontSize: 15
-
-  },
-
-  footer: {
-
-    marginTop: 35,
-
-    display: 'flex',
-
-    justifyContent: 'flex-end'
-
-  }
-
-};

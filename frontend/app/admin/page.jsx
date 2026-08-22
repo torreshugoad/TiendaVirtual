@@ -2,282 +2,158 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
-import useAdminAuth
-from '@/hooks/useAdminAuth';
-
+import useAdminAuth from '@/hooks/useAdminAuth';
+import styles from './page.module.css';
 
 export default function AdminPage() {
-
   const router = useRouter();
+  const loading = useAdminAuth();
 
-function logout() {
+  function logout() {
+    localStorage.removeItem('adminLogueado');
+    localStorage.removeItem('token');
+    router.replace('/admin/login');
+  }
 
-  localStorage.removeItem('adminLogueado');
-
-  localStorage.removeItem('token');
-
-  router.replace('/admin/login');
-
-}
-
-const loading =
-  useAdminAuth();
-
-  const cards = [
-
+  const sections = [
     {
       titulo: 'Pedidos',
-      descripcion: 'Ver y actualizar pedidos',
-      href: '/admin/pedidos',
-      color: '#ea580c'
+      descripcion: 'Ver y actualizar los pedidos de la tienda',
+      color: '#ea580c',
+      sublinks: [
+        {
+          titulo: 'Ver Pedidos',
+          href: '/admin/pedidos',
+          color: '#f3cab1'
+        },
+        {
+          titulo: 'Carrito Manual',
+          href: '/Cartmanual%01',
+          color: '#fd9366'
+        }
+      ]
     },
-
-    {
-      titulo: 'Productos',
-      descripcion: 'Administrar productos y stock',
-      href: '/admin/productos',
-      color: '#16a34a'
-    },
-
-
     {
       titulo: 'Precios / Stock',
-      descripcion: 'Planilla productos y stock',
+      descripcion: 'Gestión rápida de planilla de productos y stock',
       href: '/admin/stock',
-      color: '#2563eb'
+      color: '#16a34a',
+      sublinks: []
     },
-
     {
-      titulo: 'Dashboard',
-      descripcion: 'Resumen general de la tienda',
-      href: '/admin/dashboard',
-      color: '#2563eb'
+      titulo: 'Compras',
+      descripcion: 'Historial y control de compras',
+      href: '/admin/compras/historial',
+      color: '#9333ea',
+      sublinks: []
     },
-
-
-    {
-      titulo: 'Categorías',
-      descripcion: 'Gestionar categorías',
-      href: '/admin/categorias',
-      color: '#9333ea'
-    },
-
     {
       titulo: 'Reportes',
-      descripcion: 'Ventas y estadísticas',
-      href: '/admin/reportes',
-      color: '#dc2626'
+      descripcion: 'Dashboard y estadísticas generales de ventas',
+      color: '#006b27',
+      sublinks: [
+        { 
+          titulo: 'Dashboard', 
+          href: '/admin/dashboard', 
+          color: '#c6dfc4' 
+        },
+        { 
+          titulo: 'Reportes', 
+          href: '/admin/reportes', 
+          color: '#aabea7' 
+        }
+      ]
     },
-
-   {
-      titulo: 'Configuracion',
-      descripcion: 'Configuracion aplicacion',
-      href: '/admin/configuracion',
-      color: '#dc2626'
+    {
+      titulo: 'Administración Tienda',
+      descripcion: 'Gestión de catálogo, productos y categorías',
+      color: '#100d67',
+      sublinks: [
+        { 
+          titulo: 'Productos', 
+          href: '/admin/productos', 
+          color: '#bab5da' 
+        },
+        { 
+          titulo: 'Categorías', 
+          href: '/admin/categorias', 
+          color: '#a5b0c2' 
+        }
+      ]
     },
-
-   {
-      titulo: 'Cambiar Pasword',
-      descripcion: 'Configuracion clave acceso',
-      href: '/admin/cambiar-password',
-      color: '#dc2626'
-    },
-
+    {
+      titulo: 'Configuración',
+      descripcion: 'Ajustes de la aplicación y seguridad',
+      color: '#7a0e0e',
+      sublinks: [
+        { titulo: 'Configuración', href: '/admin/configuracion', color: '#c6bdbf' },
+        { titulo: 'Cambiar Password', href: '/admin/cambiar-password', color: '#a8a1a1' }
+      ]
+    }
   ];
 
-if (loading) {
-
-  return null;
-
-}
+  if (loading) {
+    return null;
+  }
 
   return (
-
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#f3f4f6',
-        padding: '40px'
-      }}
-    >
-
-      <div
-        style={{
-          maxWidth: '1400px',
-          margin: '0 auto'
-        }}
-      >
-
+    <div className={styles.page}>
+      <div className={styles.container}>
         {/* HEADER */}
-
-        <div
-          style={{
-            marginBottom: '40px',
-            display: 'flex',
-            justifyContent:
-              'space-between',
-            alignItems: 'center',
-            gap: '20px',
-            flexWrap: 'wrap'
-          }}
-        >
-
+        <div className={styles.header}>
           <div>
-
-            <h1
-              style={{
-                fontSize: '42px',
-                marginBottom: '10px',
-                color: '#111827'
-              }}
-            >
-
-              Panel Administrador
-
-            </h1>
-
-            <p
-              style={{
-                color: '#6b7280',
-                fontSize: '18px'
-              }}
-            >
-
-              Gestión completa de la tienda online
-
-            </p>
-
+            <h1 className={styles.title}>Panel Administrador</h1>
+            <p className={styles.subtitle}>Gestión tienda online</p>
           </div>
 
           {/* LOGOUT */}
-
-          <button
-
-            onClick={logout}
-
-            style={{
-              background: '#dc2626',
-              color: '#fff',
-              border: 'none',
-              padding: '14px 20px',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '16px'
-            }}
-          >
-
+          <button onClick={logout} className={styles.btnDanger}>
             Logout
-
           </button>
-
         </div>
 
-        {/* GRID */}
+        {/* GRID DE SECCIONES */}
+        <div className={styles.grid}>
+          {sections.map((section) => (
+            <div
+              key={section.titulo}
+              className={styles.card}
+              style={{ borderTopColor: section.color }}
+            >
+              <div>
+                <h2 className={styles.cardTitle}>{section.titulo}</h2>
+                <p className={styles.cardDescription}>{section.descripcion}</p>
+              </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns:
-              'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '25px'
-          }}
-        >
-
-          {
-
-            cards.map(card => (
-
-              <Link
-                key={card.href}
-                href={card.href}
-                style={{
-                  textDecoration: 'none'
-                }}
-              >
-
-                <div
-                  style={{
-                    background: '#ffffff',
-                    borderRadius: '22px',
-                    padding: '30px',
-                    minHeight: '220px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    boxShadow:
-                      '0 4px 14px rgba(0,0,0,0.08)',
-                    borderTop:
-                      `6px solid ${card.color}`,
-                    transition: '0.2s'
-                  }}
-                >
-
-                  <div>
-
-                    <h2
-                      style={{
-                        fontSize: '28px',
-                        color: '#111827',
-                        marginTop: 0,
-                        marginBottom: '14px'
-                      }}
+              {/* RENDERIZADO CONDICIONAL */}
+              {section.sublinks.length > 0 ? (
+                <div className={styles.sublinksContainer}>
+                  {section.sublinks.map((sub) => (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      className={styles.sublinkButton}
+                      style={{ backgroundColor: sub.color || section.color }}
                     >
-
-                      {card.titulo}
-
-                    </h2>
-
-                    <p
-                      style={{
-                        color: '#6b7280',
-                        fontSize: '16px',
-                        lineHeight: '1.6'
-                      }}
-                    >
-
-                      {card.descripcion}
-
-                    </p>
-
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: '25px',
-                      display: 'flex',
-                      justifyContent: 'flex-end'
-                    }}
-                  >
-
-                    <span
-                      style={{
-                        background: card.color,
-                        color: '#ffffff',
-                        padding: '10px 16px',
-                        borderRadius: '10px',
-                        fontWeight: 'bold',
-                        fontSize: '14px'
-                      }}
-                    >
-
-                      Ingresar
-
-                    </span>
-
-                  </div>
-
+                      {sub.titulo}
+                    </Link>
+                  ))}
                 </div>
-
-              </Link>
-            ))
-          }
-
+              ) : (
+                <div className={styles.singleButtonWrapper}>
+                  <Link
+                    href={section.href}
+                    className={styles.singleButton}
+                    style={{ backgroundColor: section.color }}
+                  >
+                    Ingresar
+                  </Link>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
-
       </div>
-
     </div>
   );
 }

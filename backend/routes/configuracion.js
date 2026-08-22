@@ -84,6 +84,9 @@ router.put('/', async (req, res) => {
     configuracion.envioGratisDesde =
       Number(req.body.envioGratisDesde || 0);
 
+    configuracion.nropedido =
+      Number(req.body.nropedido || 0);
+
     await configuracion.save();
 
     res.json({

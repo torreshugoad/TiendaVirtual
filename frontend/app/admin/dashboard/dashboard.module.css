@@ -1,0 +1,53 @@
+/*
+  Ubicación: frontend/app/admin/dashboard/dashboard.module.css
+  Estilos puntuales del dashboard. El botón "Panel Administrador" ya no
+  duplica la definición de btnSecondary: se compone desde
+  frontend/styles/buttons.module.css (fuente única de botones), y acá
+  sólo queda lo que es específico de este layout.
+*/
+
+.main {
+  padding: 30px;
+  background: #f7f7f7;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.headerContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.title {
+  margin: 0;
+}
+
+.btnSecondary {
+  composes: btnSecondary from '../../../styles/buttons.module.css';
+  width: fit-content;
+}
+
+.errorContainer {
+  margin-bottom: 30px;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.sectionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .sectionsGrid {
+    grid-template-columns: 1fr;
+  }
+}

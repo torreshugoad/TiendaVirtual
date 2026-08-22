@@ -1,29 +1,15 @@
 'use client';
 
-import useAdminAuth from '@/hooks/useAdminAuth';
-import { colors, radius } from '@/lib/styles/theme';
+import Link from 'next/link';
+import { LayoutDashboard, Plus } from 'lucide-react';
 
+import useAdminAuth from '@/hooks/useAdminAuth';
 import useCategorias from '@/hooks/useCategorias';
 import useCategoriaForm from '@/hooks/useCategoriaForm';
 import CategoriaForm from '@/components/admin/categorias/CategoriaForm';
 import CategoriaCard from '@/components/admin/categorias/CategoriaCard';
 
 import styles from './categorias.module.css';
-
-// Variables CSS derivadas del theme central. Se inyectan en el nodo raíz
-// para que categorias.module.css (y sus componentes) las consuman con var(--...).
-const themeVars = {
-  '--color-primary': colors.primary,
-  '--color-edit': colors.edit,
-  '--color-danger': colors.danger,
-  '--color-background': colors.background,
-  '--color-card': colors.card,
-  '--color-border': colors.border,
-  '--color-text-muted': colors.textMuted,
-  '--radius-sm': `${radius.sm}px`,
-  '--radius-md': `${radius.md}px`,
-  '--radius-lg': `${radius.lg}px`,
-};
 
 export default function AdminCategorias() {
   const authLoading = useAdminAuth();
@@ -35,9 +21,11 @@ export default function AdminCategorias() {
     formulario,
     editandoId,
     subiendoImagen,
+    mostrarFormulario,
     handleChange,
     subirImagen,
     iniciarEdicion,
+    abrirNuevo,
     resetFormulario,
   } = useCategoriaForm();
 
@@ -63,36 +51,69 @@ export default function AdminCategorias() {
   }
 
   return (
-    <main className={styles.page} style={themeVars}>
-      <div className={styles.headerRow}>
-        <h1>Categorías</h1>
-        <a href="/admin/productos">
-          <button className={styles.navButton}>Productos</button>
-        </a>
+    <main className={styles.page}>
+      <div className={styles.headerContainer}>
+        <h1 className={styles.title}>Categorías</h1>
+
+        <div className={styles.headerActions}>
+          <button className={styles.btnPrimary} onClick={abrirNuevo}>
+            <Plus size={16} />
+            Nueva categoría
+          </button>
+
+          <Link href="/admin/productos" className={styles.btnSecondary}>
+            Productos
+          </Link>
+
+          <Link href="/admin" className={styles.btnSecondary}>
+            <LayoutDashboard size={16} />
+            Panel Administrador
+          </Link>
+        </div>
+
+        <p className={styles.subtitle}>
+          {categorias.length} categorías cargadas
+        </p>
       </div>
 
-      <CategoriaForm
-        formulario={formulario}
-        editandoId={editandoId}
-        subiendoImagen={subiendoImagen}
-        onChange={handleChange}
-        onFileChange={subirImagen}
-        onSubmit={guardarCategoria}
-        onCancel={resetFormulario}
-      />
+      {mostrarFormulario && (
+        <CategoriaForm
+          formulario={formulario}
+          editandoId={editandoId}
+          subiendoImagen={subiendoImagen}
+          onChange={handleChange}
+          onFileChange={subirImagen}
+          onSubmit={guardarCategoria}
+          onCancel={resetFormulario}
+        />
+      )}
 
       {loading ? (
         <p>Cargando categorías...</p>
       ) : (
-        <div className={styles.grid}>
-          {categorias.map((categoria) => (
-            <CategoriaCard
-              key={categoria._id}
-              categoria={categoria}
-              onEdit={iniciarEdicion}
-              onDelete={handleEliminar}
-            />
-          ))}
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.encabezado}>Nombre</th>
+                <th className={styles.encabezado}>Activa</th>
+                <th className={styles.encabezado}>Orden</th>
+                <th className={`${styles.encabezado} ${styles.encabezadoAcciones}`}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...categorias]
+                .sort((a, b) => a.orden - b.orden)
+                .map((categoria) => (
+                  <CategoriaCard
+                    key={categoria._id}
+                    categoria={categoria}
+                    onEdit={iniciarEdicion}
+                    onDelete={handleEliminar}
+                  />
+                ))}
+            </tbody>
+          </table>
         </div>
       )}
     </main>

@@ -1,0 +1,57 @@
+.categoriaRow {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.categoriaRow:last-child {
+  border-bottom: none;
+}
+
+.categoriaRow:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.celda {
+  padding: 0.65rem 0.75rem;
+  vertical-align: middle;
+}
+
+.celdaOrden {
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.celdaAcciones {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.badgeActiva,
+.badgeInactiva {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badgeActiva {
+  background: #e3f2e1;
+  color: #2e7d32;
+}
+
+.badgeInactiva {
+  background: #fcb0b0;
+  color: #6b7280;
+}
+
+.btnAccionEdit {
+  composes: btnSecondary btnSmall from '../../../styles/buttons.module.css';
+  padding: 0.4rem;
+  margin-left: 0.25rem;
+}
+
+.btnAccionDelete {
+  composes: btnDanger btnSmall from '../../../styles/buttons.module.css';
+  padding: 0.4rem;
+  margin-left: 0.25rem;
+}

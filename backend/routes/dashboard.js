@@ -1,202 +1,121 @@
-const express =
-  require('express');
-
-const router =
-  express.Router();
-
-const auth =
-  require('../middleware/auth');
+const express = require('express');
+const router = express.Router();
+const auth = require('../middleware/auth');
 
 router.use(auth);
 
-const Pedido =
-  require('../models/Pedido');
+const Pedido = require('../models/Pedido');
+const Producto = require('../models/Producto');
 
-const Producto =
-  require('../models/Producto');
+function obtenerRangoFechas(fechaInicio, fechaFin) {
+  const inicio = new Date(fechaInicio);
+  inicio.setHours(0, 0, 0, 0);
 
-router.get('/',
-async (req, res) => {
+  const fin = new Date(fechaFin);
+  fin.setHours(23, 59, 59, 999);
 
+  return { inicio, fin };
+}
+
+router.get('/', async (req, res) => {
   try {
+    const { fechaInicio, fechaFin } = req.query;
 
-    const pedidos =
-      await Pedido.find();
+    if (!fechaInicio || !fechaFin) {
+      return res.status(400).json({
+        error: 'fechaInicio y fechaFin son requeridos'
+      });
+    }
 
-    const productos =
-      await Producto.find();
+    const { inicio, fin } = obtenerRangoFechas(fechaInicio, fechaFin);
 
-const ventasTotales = pedidos
-  .filter(pedido => pedido.estado !== "Cancelado")
-  .reduce((acc, pedido) => acc + (pedido.total || 0), 0);
+    const pedidosPeriodo = await Pedido.find({
+      fecha: {
+        $gte: inicio,
+        $lte: fin
+      }
+    });
 
-    const pedidosPendientes =
+    const productos = await Producto.find();
 
-      pedidos.filter(
+    // Pedidos pendientes: se muestra el total actual (no depende del
+    // período elegido), porque es una cola de trabajo operativa, no
+    // una métrica histórica.
+    const pedidosPendientes = await Pedido.countDocuments({
+      estado: 'Pedido pendiente'
+    });
 
-        p =>
+    const facturacionPeriodo = pedidosPeriodo
+      .filter((pedido) => pedido.estado !== 'Cancelado')
+      .reduce((acc, pedido) => acc + (pedido.total || 0), 0);
 
-          p.estado ===
-          'Pedido pendiente'
+    const cantidadPedidosPeriodo = pedidosPeriodo.length;
 
-      ).length;
+    const ticketPromedioPeriodo =
+      cantidadPedidosPeriodo > 0
+        ? facturacionPeriodo / cantidadPedidosPeriodo
+        : 0;
 
-    const hoy =
-      new Date();
+    const ventasProductos = {};
 
-    hoy.setHours(
-      0, 0, 0, 0
-    );
+    pedidosPeriodo.forEach((pedido) => {
+      pedido.items?.forEach((item) => {
+        const key = `${item.nombre} ${item.peso}`;
 
-    const pedidosHoy =
-
-      pedidos.filter(p => {
-
-        const fecha =
-          new Date(p.fecha);
-
-        fecha.setHours(
-          0, 0, 0, 0
-        );
-
-        return (
-          fecha.getTime() ===
-          hoy.getTime()
-        );
-
-      }).length;
-
-    const mesActual =
-      new Date().getMonth();
-
-    const anioActual =
-      new Date().getFullYear();
-
-    const facturacionMensual =
-      pedidos
-
-        .filter(p => {
-
-          const fecha =
-            new Date(p.fecha);
-
-          return (
-
-            fecha.getMonth() ===
-              mesActual &&
-
-            fecha.getFullYear() ===
-              anioActual
-
-          );
-
-        })
-
-        .reduce(
-
-          (acc, pedido) =>
-
-            acc + (
-              pedido.total || 0
-            ),
-
-          0
-
-        );
-
-    const ventasProductos =
-      {};
-
-    pedidos.forEach(pedido => {
-
-      pedido.items?.forEach(item => {
-
-        const key =
-
-          `${item.nombre} ${item.peso}`;
-
-        if (
-          !ventasProductos[key]
-        ) {
-
+        if (!ventasProductos[key]) {
           ventasProductos[key] = 0;
         }
 
-        ventasProductos[key] +=
-          item.cantidad;
-
+        ventasProductos[key] += item.cantidad;
       });
-
     });
 
-    const topProductos =
-
-      Object.entries(
-        ventasProductos
-      )
-
-      .sort((a, b) =>
-        b[1] - a[1]
-      )
-
+    const topProductos = Object.entries(ventasProductos)
+      .sort((a, b) => b[1] - a[1])
       .slice(0, 10);
 
-const stockBajo = [];
+    const stockBajo = [];
 
-productos.forEach((producto) => {
-  if (producto.tipoStock === 'granel') {
-    const minimo = producto.stockMinimoGranel ?? 2000;
+    productos.forEach((producto) => {
+      if (producto.tipoStock === 'granel') {
+        const minimo = producto.stockMinimoGranel ?? 2000;
 
-    if (producto.stockGranel <= minimo) {
-      stockBajo.push({
-        nombre: producto.nombre,
-        stock: `${(producto.stockGranel / 1000).toFixed(2)} Kg`
-      });
-    }
-  } else {
-    producto.variantes?.forEach((v) => {
-      const minimo = v.stockMinimo ?? 5;
+        if (producto.stockGranel <= minimo) {
+          stockBajo.push({
+            nombre: producto.nombre,
+            stock: `${(producto.stockGranel / 1000).toFixed(2)} Kg`
+          });
+        }
+      } else {
+        producto.variantes?.forEach((v) => {
+          const minimo = v.stockMinimo ?? 5;
 
-      if (v.stock <= minimo) {
-        stockBajo.push({
-          nombre: `${producto.nombre} ${v.peso}`,
-          stock: v.stock
+          if (v.stock <= minimo) {
+            stockBajo.push({
+              nombre: `${producto.nombre} ${v.peso}`,
+              stock: v.stock
+            });
+          }
         });
       }
     });
-  }
-});
 
     res.json({
-
-      ventasTotales,
-
+      fechaInicio,
+      fechaFin,
+      facturacionPeriodo,
+      cantidadPedidosPeriodo,
+      ticketPromedioPeriodo,
       pedidosPendientes,
-
-      pedidosHoy,
-
-      facturacionMensual,
-
       topProductos,
-
       stockBajo
-
     });
-
   } catch (error) {
-
     console.log(error);
-
-    res.status(500)
-      .json({
-
-        error:
-          'Error dashboard'
-
-      });
-
+    res.status(500).json({
+      error: 'Error dashboard'
+    });
   }
-
 });
 
 module.exports = router;

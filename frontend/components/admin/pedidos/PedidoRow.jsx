@@ -1,14 +1,19 @@
 'use client';
 
+import { useState } from 'react';
+import { Eye, RefreshCw } from 'lucide-react';
+
 import EstadoBadge from '@/components/admin/common/EstadoBadge';
 import EstadoSelect from '@/components/admin/common/EstadoSelect';
-import Button from '@/components/admin/common/Button';
+import styles from './PedidosTable.module.css';
 
 export default function PedidoRow({
   pedido,
   onSeleccionar,
   onActualizarEstado
 }) {
+  const [cambiandoEstado, setCambiandoEstado] = useState(false);
+
   const total = Number(pedido.total || 0);
 
   const fecha = new Date(pedido.fecha).toLocaleDateString('es-AR');
@@ -23,45 +28,52 @@ export default function PedidoRow({
     }
 
     onActualizarEstado(pedido._id, nuevoEstado);
+    setCambiandoEstado(false);
   }
 
   return (
     <tr>
-      <td style={styles.td}>#{pedido.nropedido}</td>
+      <td className={styles.td}>#{pedido.nropedido}</td>
 
-      <td style={styles.td}>{fecha}</td>
+      <td className={styles.td}>{fecha}</td>
 
-      <td style={styles.td}>
+      <td className={styles.td}>
         <strong>{pedido.cliente}</strong>
       </td>
 
-      <td style={styles.td}>${total.toFixed(2)}</td>
+      <td className={styles.tdRight}>${total.toFixed(2)}</td>
 
-      <td style={styles.td}>
-        <EstadoBadge estado={pedido.estado} />
-      </td>
+      <td className={styles.td}>
+        <div className={styles.estadoConAcciones}>
+          {cambiandoEstado ? (
+            <EstadoSelect
+              value={pedido.estado}
+              onChange={manejarCambioEstado}
+            />
+          ) : (
+            <EstadoBadge estado={pedido.estado} />
+          )}
 
-      <td style={styles.td}>
-        <EstadoSelect
-          value={pedido.estado}
-          onChange={manejarCambioEstado}
-        />
-      </td>
-
-      <td style={styles.td}>
-        <Button variant="secondary" onClick={() => onSeleccionar(pedido)}>
-          Ver
-        </Button>
+          <div className={styles.acciones}>
+            <button
+              onClick={() => onSeleccionar(pedido)}
+              className={styles.iconButton}
+              aria-label="Ver pedido"
+              title="Ver pedido"
+            >
+              <Eye size={16} />
+            </button>
+            <button
+              onClick={() => setCambiandoEstado((v) => !v)}
+              className={styles.iconButton}
+              aria-label="Cambiar estado"
+              title="Cambiar estado"
+            >
+              <RefreshCw size={16} />
+            </button>
+          </div>
+        </div>
       </td>
     </tr>
   );
 }
-
-const styles = {
-  td: {
-    padding: '8px 10px',
-    borderBottom: '1px solid #eee',
-    verticalAlign: 'middle',
-    fontSize: 13
-  }
-};

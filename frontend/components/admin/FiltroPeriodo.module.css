@@ -1,0 +1,38 @@
+/*
+  Ubicación: frontend/components/admin/FiltroPeriodo.module.css
+  select/input/botón salen de los módulos compartidos (composes).
+  Acá solo queda el layout específico de este componente.
+*/
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+}
+
+.right {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.select {
+  composes: select from '../../styles/inputs.module.css';
+}
+
+.input {
+  composes: input from '../../styles/inputs.module.css';
+}
+
+.btnExport {
+  composes: btnExport from '../../styles/buttons.module.css';
+}

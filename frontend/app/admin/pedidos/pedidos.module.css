@@ -1,0 +1,33 @@
+/*
+  Ubicación: frontend/app/admin/pedidos/pedidos.module.css
+  Layout de la página. Los botones/tabla/detalle viven en sus propios
+  componentes (PedidosToolbar, PedidosTable, PedidoDetalle) — cuando quieras
+  ordenarlos, aplican el mismo patrón: su propio .module.css, y si tienen
+  botones, componen desde styles/buttons.module.css.
+
+  header/btnSecondary siguen el mismo criterio que dashboard.module.css y
+  reportes.module.css: título arriba, botón "Panel Administrador" debajo,
+  compuesto desde la fuente única de botones.
+*/
+
+.page {
+  padding: 20px;
+  background: #f7f7f7;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+}
+
+.btnSecondary {
+  composes: btnSecondary from '../../../styles/buttons.module.css';
+  width: fit-content;
+}

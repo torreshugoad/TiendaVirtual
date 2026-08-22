@@ -1,37 +1,40 @@
-import Image from 'next/image';
-import styles from '@/app/admin/categorias/categorias.module.css';
+'use client';
 
-export default function CategoriaCard({ categoria, onEdit, onDelete }) {
+import { Pencil, Trash2 } from 'lucide-react';
+import styles from './CategoriaCard.module.css';
+
+export default function CategoriaCard({ categoria = {}, onEdit, onDelete }) {
   return (
-    <div className={styles.categoriaCard}>
-      {categoria.imagen && (
-        <Image
-          src={categoria.imagen}
-          alt={categoria.nombre}
-          width={80}
-          height={80}
-          className={styles.categoriaImage}
-        />
-      )}
-
-      <div className={styles.categoriaInfo}>
-        <h2>{categoria.nombre}</h2>
-        <p>{categoria.descripcion}</p>
-        <p>Orden: {categoria.orden}</p>
-        <p>{categoria.activa ? 'Activa' : 'Inactiva'}</p>
-      </div>
-
-      <div className={styles.actions}>
-        <button onClick={() => onEdit(categoria)} className={styles.editButton}>
-          Editar
+    <tr className={styles.categoriaRow}>
+      <td className={styles.celda}>{categoria?.nombre ?? '-'}</td>
+      <td className={styles.celda}>
+        <span
+          className={
+            categoria?.activa ? styles.badgeActiva : styles.badgeInactiva
+          }
+        >
+          {categoria?.activa ? 'Activa' : 'Inactiva'}
+        </span>
+      </td>
+      <td className={`${styles.celda} ${styles.celdaOrden}`}>
+        {categoria?.orden ?? 0}
+      </td>
+      <td className={`${styles.celda} ${styles.celdaAcciones}`}>
+        <button
+          onClick={() => onEdit(categoria)}
+          className={styles.btnAccionEdit}
+          aria-label="Editar categoría"
+        >
+          <Pencil size={15} />
         </button>
         <button
-          onClick={() => onDelete(categoria._id)}
-          className={styles.deleteButton}
+          onClick={() => onDelete(categoria?._id)}
+          className={styles.btnAccionDelete}
+          aria-label="Eliminar categoría"
         >
-          Eliminar
+          <Trash2 size={15} />
         </button>
-      </div>
-    </div>
+      </td>
+    </tr>
   );
 }

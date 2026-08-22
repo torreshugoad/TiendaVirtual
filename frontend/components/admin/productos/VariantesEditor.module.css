@@ -1,0 +1,102 @@
+/* Importamos los inputs globales */
+.inputBase {
+  composes: input from '../../../styles/buttons.module.css';
+}
+
+/* Importamos los botones globales */
+.btnPrimary {
+  composes: btnPrimary btnSmall from '../../../styles/buttons.module.css';
+}
+
+.iconDanger {
+  composes: btnDanger btnSmall from '../../../styles/buttons.module.css';
+  padding: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.container {
+  margin-top: 1rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.titulo {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+/* Contenedor con scroll horizontal para celulares */
+.tablaScroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+.tablaContenido {
+  min-width: 440px; /* Reducido para adaptarse al tamaño compacto */
+}
+
+/* Estructura de fila compartida */
+.filaGrid {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.encabezadoFila {
+  composes: filaGrid;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 0.35rem;
+}
+
+.labelEncabezado {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+/* Tamaños ajustados al largo compacto de cada dato */
+.labelPeso,
+.inputPeso {
+  flex: 1.5;
+  min-width: 85px;
+}
+
+.labelNumero,
+.inputNumero {
+  flex: 1;
+  min-width: 50px;
+}
+
+.inputPeso,
+.inputNumero {
+  composes: inputBase;
+  padding: 0.35rem 0.4rem; /* Padding ajustado al texto */
+  font-size: 0.8rem;
+}
+
+.espacioAccion {
+  width: 27px;
+  flex-shrink: 0;
+}
+
+.contenidoBoton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}

@@ -1,0 +1,63 @@
+
+.btnPrimary {
+  composes: btnPrimary from '../../../styles/buttons.module.css';
+}
+
+.btnSecondary {
+  composes: btnSecondary from '../../../styles/buttons.module.css';
+}
+
+.iconButton {
+  composes: iconButton from '../../../styles/buttons.module.css';
+}
+
+.linkButtonBase {
+  composes: linkButtonBase from '../../../styles/buttons.module.css';
+}
+
+.filterInput {
+  composes: input from '../../../styles/inputs.module.css';
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+.buttonsRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap; /* Por si la pantalla es pequeña y se ajusten bien */
+}
+
+/* Estilo unificado para todos los botones de acción principal */
+.btnAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 10px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.btnAction:hover {
+  background-color: #e5e7eb;
+}
+
+.contador {
+  font-size: 14px;
+  color: #555555;
+  font-weight: 500;
+}

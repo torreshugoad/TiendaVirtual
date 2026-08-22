@@ -1,0 +1,18 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Adaptación responsiva para celulares */
+@media (max-width: 640px) {
+  .container {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+}

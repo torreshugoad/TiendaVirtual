@@ -43,7 +43,10 @@ const varianteSchema = new mongoose.Schema({
     type: Number,
     default: 5,
     min: 0
-  }
+  },
+
+ margenMultiplicador: { type: Number, default: 2 },  // ej: 2 = vender al doble del costo
+  factorAjuste: { type: Number, default: 1 }           // ej: 0.98 = 2% descuento en esa presentación
 
 });
 
@@ -81,7 +84,8 @@ const productoSchema = new mongoose.Schema({
 
   activo: {
     type: Boolean,
-    default: true
+    default: true,
+    index: true
   },
 
   tipoStock: {
@@ -159,6 +163,27 @@ const productoSchema = new mongoose.Schema({
     type: Number,
     default: 2000,
     min: 0
+  },
+
+  /*
+    Descuento tipo PROMOCIÓN, visible para el cliente en la
+    tienda (distinto del descuento manual que carga el
+    vendedor al armar un carrito a mano).
+
+    Se expresa siempre como PORCENTAJE (0 a 100). Si es 0,
+    el producto no tiene promoción activa y se muestra el
+    precio normal, sin ningún indicador.
+
+    Aplica sobre el precio de cada variante / precioCombo,
+    según tipoStock, tanto en la tienda como en el checkout
+    (el precio final se recalcula siempre en el servidor).
+  */
+
+  descuento: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
   },
 
   variantes: [varianteSchema]

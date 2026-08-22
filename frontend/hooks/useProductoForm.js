@@ -18,6 +18,10 @@ const formularioInicial = {
 
   tipoStock: 'unidad',
 
+  // Descuento promocional visible al cliente en la tienda (%).
+  // 0 = sin promoción activa.
+  descuento: 0,
+
   // El usuario trabaja en Kg.
   // Mongo guarda gramos.
 
@@ -52,6 +56,10 @@ export default function useProductoForm({
   const [editandoId, setEditandoId] =
 
     useState(null);
+
+  const [mostrarFormulario, setMostrarFormulario] =
+
+    useState(false);
 
   /* ==========================
      CAMPOS
@@ -133,7 +141,13 @@ export default function useProductoForm({
 
           stockMinimo: '',
 
-          equivalencia: 0
+          equivalencia: 0,
+
+          // Defaults del cálculo de precio sugerido al cargar una compra.
+          // Ver backend/utils/compras.js -> calcularPrecioSugerido
+          margenMultiplicador: 2,
+
+          factorAjuste: 1
 
         }
 
@@ -335,6 +349,10 @@ export default function useProductoForm({
 
         'unidad',
 
+      descuento:
+
+        producto.descuento ?? 0,
+
       // gramos → Kg
 
       stockGranel:
@@ -407,13 +425,44 @@ export default function useProductoForm({
 
               equivalencia:
 
-                v.equivalencia ?? 0
+                v.equivalencia ?? 0,
+
+              // Si el producto es viejo y todavía no tiene estos campos
+              // guardados en la base, se completan con el default (2 / 1)
+              // en vez de mandar undefined y borrarlos al guardar.
+              margenMultiplicador:
+
+                v.margenMultiplicador ?? 2,
+
+              factorAjuste:
+
+                v.factorAjuste ?? 1
 
             }))
 
           : []
 
     });
+
+    setMostrarFormulario(true);
+
+  }
+
+  /* ==========================
+     NUEVO
+  ========================== */
+
+  function abrirNuevo() {
+
+    setEditandoId(null);
+
+    setFormulario(
+
+      formularioInicial
+
+    );
+
+    setMostrarFormulario(true);
 
   }
 
@@ -430,6 +479,8 @@ export default function useProductoForm({
     );
 
     setEditandoId(null);
+
+    setMostrarFormulario(false);
 
   }
 
@@ -502,7 +553,35 @@ export default function useProductoForm({
 
               )
 
-          }))
+          })),
+
+      variantes:
+
+        formulario.variantes.map(v => ({
+
+          ...v,
+
+          margenMultiplicador:
+
+            Number(
+
+              String(v.margenMultiplicador || 2)
+
+                .replace(',', '.')
+
+            ) || 2,
+
+          factorAjuste:
+
+            Number(
+
+              String(v.factorAjuste || 1)
+
+                .replace(',', '.')
+
+            ) || 1
+
+        }))
 
     };
 
@@ -546,6 +625,8 @@ export default function useProductoForm({
 
     editandoId,
 
+    mostrarFormulario,
+
     handleChange,
 
     actualizarCampo,
@@ -563,6 +644,8 @@ export default function useProductoForm({
     eliminarComponente,
 
     cargarProducto,
+
+    abrirNuevo,
 
     guardar,
 

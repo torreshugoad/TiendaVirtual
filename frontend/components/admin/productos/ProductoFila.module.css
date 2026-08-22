@@ -1,0 +1,94 @@
+/* Heredamos el estilo global de botones con ícono */
+.iconButton {
+  composes: iconButton from '../../../styles/buttons.module.css';
+}
+
+/* Contenedor general de la tabla */
+.tablaWrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.tabla th {
+  background: #e1e2e2;
+  color: #374151;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.tabla td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #111827;
+  color: #111827;
+  vertical-align: middle;
+}
+
+.tabla tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla tr:hover {
+  background: #f9fafb;
+}
+
+/* Celdas específicas */
+.celdaProducto {
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.celdaPrecio {
+  font-weight: 600;
+}
+
+.acciones {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* Badges compostos desde buttons.module.css */
+.badgeBase {
+  composes: badge from '../../../styles/buttons.module.css';
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.badgeGranel {
+  composes: badgeBase;
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.badgeUnidad {
+  composes: badgeBase;
+  background: #dcfce7;
+  color: #166534;
+  }
+
+.badgeCombo {
+  composes: badgeBase;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badgePromo {
+  composes: badgeBase;
+  background: #fee2e2;
+  color: #991b1b;
+}

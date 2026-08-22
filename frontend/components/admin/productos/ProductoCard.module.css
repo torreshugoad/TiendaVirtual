@@ -1,0 +1,225 @@
+.card {
+  background: #ffffff;
+  border: 1px solid #01153d;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.nombreRow {
+  padding: 12px 16px 4px 16px;
+  border-bottom: none;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 1fr 60px auto;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 16px 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.nombreValor {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoriaValor {
+  font-size: 14px;
+  color: #0f172a;
+  text-align: left;
+}
+
+.ordenValor {
+  font-size: 14px;
+  color: #0f172a;
+  text-align: center;
+}
+
+.accionesHeader {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.body {
+  display: flex;
+  gap: 18px;
+  padding: 14px 16px;
+}
+
+.colFoto {
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.imagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sinImagen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  font-size: 24px;
+}
+
+.colDatos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filaInfo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 12px;
+  text-transform: capitalize;
+  letter-spacing: 0.03em;
+  color: #01296f;
+  font-weight: 500;
+}
+
+.valor {
+  font-size: 14px;
+  color: #111827;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badgeGranel,
+.badgeUnidad,
+.badgeCombo {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badgeGranel {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.badgeUnidad {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badgeCombo {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.tablaVariantes {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.tablaVariantes th {
+  text-align: left;
+  color: #0b1831;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tablaVariantes td {
+  padding: 3px 8px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.precioCelda {
+  text-align: left;
+  font-weight: 600;
+}
+
+.precioComboTexto {
+  font-weight: 600;
+}
+
+.iconButton {
+  background: transparent;
+  border: 1px solid #2a4277;
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+  color: #2a4277;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.iconButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #166534;
+}
+
+/* ========================================== */
+/* ADAPTACIÓN PARA CELULARES (Pantallas chicas) */
+/* ========================================== */
+@media (max-width: 640px) {
+  .header {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 8px;
+  }
+
+  .categoriaValor {
+    grid-column: 1 / -1;
+  }
+
+  .body {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .colFoto {
+    width: 90px;
+    height: 90px;
+  }
+
+  .filaInfo {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .tablaVariantes {
+    display: block;
+    overflow-x: auto;
+  }
+}

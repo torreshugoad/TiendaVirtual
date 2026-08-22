@@ -40,6 +40,15 @@ function normalizarProducto(data) {
     tipoStock:
       data.tipoStock || 'unidad',
 
+    // Descuento promocional visible al cliente en la tienda (%).
+    // Se acota entre 0 y 100 acá también, aunque el schema ya lo
+    // valide, para no confiar únicamente en la validación de Mongoose.
+    descuento:
+      Math.min(
+        Math.max(Number(data.descuento || 0), 0),
+        100
+      ),
+
     // Siempre en gramos
 
     stockGranel:
@@ -94,7 +103,30 @@ function normalizarProducto(data) {
         // Siempre en gramos
 
         equivalencia:
-          Number(v.equivalencia || 0)
+          Number(v.equivalencia || 0),
+
+        // Multiplicador sobre el costo para el precio de venta
+        // sugerido al cargar una compra (default: 2 = vender al doble).
+        // Acepta coma o punto decimal, por si llega sin normalizar.
+
+        margenMultiplicador:
+
+          Number(
+
+            String(v.margenMultiplicador ?? 2).replace(',', '.')
+
+          ) || 2,
+
+        // Ajuste fino aplicado después del margen, por variante
+        // (default: 1 = sin ajuste)
+
+        factorAjuste:
+
+          Number(
+
+            String(v.factorAjuste ?? 1).replace(',', '.')
+
+          ) || 1
 
       }))
 

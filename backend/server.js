@@ -7,6 +7,9 @@ const mongoose =
 const cors =
   require('cors');
 
+const compression =
+  require('compression');
+
 require('dotenv').config();
 
 /* =========================
@@ -60,6 +63,8 @@ app.use(
     credentials: true
   })
 );
+
+app.use(compression());
 
 app.use(express.json());
 
@@ -138,6 +143,8 @@ app.use(
   '/api/verificar-stock',
   verificarStockRoutes
 );
+
+app.use('/api/compras', require('./routes/compras'));
 
 app.use('/api/admin', authRoutes);
 

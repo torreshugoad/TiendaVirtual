@@ -1,9 +1,14 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { LayoutDashboard } from 'lucide-react';
 
 import useAdminAuth from '@/hooks/useAdminAuth';
 import { apiFetch } from '@/lib/api';
+import Button from '@/components/admin/common/Button';
+
+import styles from './stock.module.css';
 
 // Umbrales por defecto, solo como fallback si un producto
 // viejo no tuviera stockMinimo/stockMinimoGranel cargado.
@@ -73,16 +78,6 @@ export default function AdminStockPage() {
     }
   }
 
-  function actualizarVarianteStock(varianteId, valor) {
-    const nuevasFilas = filas.map((fila) =>
-      fila.varianteId === varianteId
-        ? { ...fila, stock: valor }
-        : fila
-    );
-
-    setFilas(nuevasFilas);
-  }
-
   function actualizarVariantePrecio(varianteId, valor) {
     const nuevasFilas = filas.map((fila) =>
       fila.varianteId === varianteId
@@ -93,10 +88,18 @@ export default function AdminStockPage() {
     setFilas(nuevasFilas);
   }
 
-  function actualizarVarianteStockMinimo(varianteId, valor) {
+  // El stock "por unidad" es único por producto (campo `stock`), no
+  // por variante. Antes esta función matcheaba por varianteId y solo
+  // tocaba la primera variante, por eso no impactaba correctamente en
+  // el backend.
+  function actualizarStockUnidad(productoId, valor) {
     const nuevasFilas = filas.map((fila) =>
-      fila.varianteId === varianteId
-        ? { ...fila, stockMinimo: valor }
+      fila.productoId === productoId
+        ? {
+            ...fila,
+            stock:
+              valor === '' ? 0 : Math.round(Number(valor))
+          }
         : fila
     );
 
@@ -107,16 +110,6 @@ export default function AdminStockPage() {
     const nuevasFilas = filas.map((fila) =>
       fila.productoId === productoId
         ? { ...fila, stockGranel: valor }
-        : fila
-    );
-
-    setFilas(nuevasFilas);
-  }
-
-  function actualizarStockMinimoGranel(productoId, valor) {
-    const nuevasFilas = filas.map((fila) =>
-      fila.productoId === productoId
-        ? { ...fila, stockMinimoGranel: valor }
         : fila
     );
 
@@ -229,50 +222,28 @@ export default function AdminStockPage() {
   }
 
   return (
-    <div
-      style={{
-        padding: '14px',
-        background: '#f3f4f6',
-        minHeight: '100vh'
-      }}
-    >
-      <h1 style={{ fontSize: '18px', marginBottom: '10px' }}>
-        Administración de Stock
-      </h1>
+    <div className={styles.container}>
+      <div className={styles.headerContainer}>
+        <h1 className={styles.title}>Administración de Stock</h1>
+        <Link href="/admin" className={styles.btnSecondary}>
+          <LayoutDashboard size={15} />
+          Panel Administrador
+        </Link>
+      </div>
 
       {/* FILTROS */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '8px',
-          flexWrap: 'wrap',
-          marginBottom: '10px',
-          background: '#f6d6d6',
-          padding: '8px',
-          borderRadius: '5px',
-          fontSize: '13px'
-        }}
-      >
+      <div className={styles.filtros}>
         <input
           placeholder="Buscar producto"
           value={buscar}
           onChange={(e) => setBuscar(e.target.value)}
-          style={{
-            padding: '6px 8px',
-            borderRadius: '6px',
-            border: '1px solid #ccc',
-            fontSize: '13px'
-          }}
+          className={styles.input}
         />
 
         <select
           value={categoriaFiltro}
           onChange={(e) => setCategoriaFiltro(e.target.value)}
-          style={{
-            padding: '6px 8px',
-            borderRadius: '5px',
-            fontSize: '13px'
-          }}
+          className={styles.select}
         >
           <option value="">Todas las categorías</option>
 
@@ -288,16 +259,10 @@ export default function AdminStockPage() {
           placeholder="Stock menor a"
           value={stockMenorA}
           onChange={(e) => setStockMenorA(e.target.value)}
-          style={{
-            padding: '6px 8px',
-            borderRadius: '5px',
-            border: '1px solid #ccc',
-            width: '50px',
-            fontSize: '13px'
-          }}
+          className={styles.inputStockMenor}
         />
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+        <label className={styles.checkboxLabel}>
           <input
             type="checkbox"
             checked={soloSinStock}
@@ -306,7 +271,7 @@ export default function AdminStockPage() {
           Sin stock
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+        <label className={styles.checkboxLabel}>
           <input
             type="checkbox"
             checked={soloGranel}
@@ -316,167 +281,84 @@ export default function AdminStockPage() {
         </label>
       </div>
 
+      <div className={styles.footerGuardar}>
+        <Button variant="success" onClick={guardarCambios} disabled={guardando}>
+          {guardando ? 'Guardando...' : 'Guardar cambios'}
+        </Button>
+      </div>
+
       {/* PLANILLA */}
-      <div
-        style={{
-          overflowX: 'auto',
-          background: '#fff',
-          borderRadius: '5px',
-          border: '1px solid #e5e7eb'
-        }}
-      >
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead style={{ background: '#111827', color: '#ffffff' }}>
+      <div className={styles.tableWrapper}>
+        <table className={styles.tabla}>
+          <thead>
             <tr>
-              <th style={th}>Categoría</th>
-              <th style={th}>Producto / Variante</th>
-              <th style={{ ...th, textAlign: 'right' }}>Precio</th>
-              <th style={{ ...th, textAlign: 'right' }}>Stock</th>
-              <th style={{ ...th, textAlign: 'right' }}>Stock mínimo</th>
-              <th style={{ ...th, textAlign: 'center' }}>Estado</th>
+              <th className={styles.th}>Producto</th>
+              <th className={styles.thRight}>Stock</th>
+              <th className={styles.th}>Variantes</th>
             </tr>
           </thead>
 
           <tbody>
-            {productosAgrupados.map((producto, index) => {
+            {productosAgrupados.map((producto) => {
               const esGranel = producto.tipoStock === 'granel';
-
-              const fondo = index % 2 === 0 ? '#ffffff' : '#f9fafb';
 
               const umbralGranel =
                 producto.stockMinimoGranel ?? UMBRAL_BAJO_GRANEL_KG_DEFAULT;
 
-              const estadoProducto = esGranel
-                ? calcularEstado(
-                    Number(producto.stockGranel || 0),
-                    umbralGranel
-                  )
-                : null;
+              const varianteUnidad = esGranel ? null : producto.variantes[0];
+
+              const stockActual = esGranel
+                ? Number(producto.stockGranel || 0)
+                : Number(varianteUnidad?.stock || 0);
+
+              const umbralActual = esGranel
+                ? umbralGranel
+                : varianteUnidad?.stockMinimo ?? UMBRAL_BAJO_UNIDAD_DEFAULT;
+
+              const estado = calcularEstado(stockActual, umbralActual);
 
               return (
-                <Fragment key={producto.productoId}>
-                  {/* FILA PRODUCTO */}
-                  <tr
-                    style={{
-                      background: fondo,
-                      borderTop: '2px solid #d1d5db'
-                    }}
-                  >
-                    <td style={{ ...td, fontWeight: 'bold' }}>
-                      {producto.categoria}
-                    </td>
+                <tr key={producto.productoId} className={styles.fila}>
+                  <td className={styles.tdProducto}>
+                    {producto.producto}
+                  </td>
 
-                    <td
-                      style={{
-                        ...td,
-                        fontWeight: 'bold',
-                        fontSize: '13px'
+                  <td className={styles.tdRight}>
+                    <input
+                      type="number"
+                      step={esGranel ? '0.01' : '1'}
+                      min="0"
+                      value={stockActual}
+                      onChange={(e) => {
+                        const valor =
+                          e.target.value === ''
+                            ? ''
+                            : Number(e.target.value);
+
+                        if (esGranel) {
+                          actualizarStockGranel(
+                            producto.productoId,
+                            valor
+                          );
+                        } else {
+                          actualizarStockUnidad(
+                            producto.productoId,
+                            valor
+                          );
+                        }
                       }}
-                    >
-                      {producto.producto}
-                    </td>
+                      className={styles.inputStock}
+                      style={{ background: estado ? estado.color : '#fff' }}
+                    />
+                  </td>
 
-                    <td style={td} />
-
-                    <td style={{ ...td, textAlign: 'right' }}>
-                      {esGranel ? (
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={producto.stockGranel ?? 0}
-                          onChange={(e) => {
-                            const valor =
-                              e.target.value === ''
-                                ? ''
-                                : Number(e.target.value);
-
-                            actualizarStockGranel(
-                              producto.productoId,
-                              valor
-                            );
-                          }}
-                          style={{ ...input, textAlign: 'right' }}
-                        />
-                      ) : (
-                        <span style={{ color: '#9ca3af' }}>—</span>
-                      )}
-                    </td>
-
-                    <td style={{ ...td, textAlign: 'right' }}>
-                      {esGranel ? (
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={producto.stockMinimoGranel ?? 0}
-                          onChange={(e) => {
-                            const valor =
-                              e.target.value === ''
-                                ? ''
-                                : Number(e.target.value);
-
-                            actualizarStockMinimoGranel(
-                              producto.productoId,
-                              valor
-                            );
-                          }}
-                          style={{ ...input, textAlign: 'right' }}
-                        />
-                      ) : (
-                        <span style={{ color: '#9ca3af' }}>—</span>
-                      )}
-                    </td>
-
-                    <td style={{ ...td, textAlign: 'center' }}>
-                      {estadoProducto && (
-                        <span
-                          style={{
-                            background: estadoProducto.color,
-                            padding: '2px 8px',
-                            borderRadius: '999px',
-                            fontSize: '12px',
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          {estadoProducto.texto}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-
-                  {/* FILAS VARIANTE */}
-                  {producto.variantes.map((variante) => {
-                    const stockVariante = Number(variante.stock || 0);
-
-                    const umbralVariante =
-                      variante.stockMinimo ?? UMBRAL_BAJO_UNIDAD_DEFAULT;
-
-                    const estadoVariante = esGranel
-                      ? null
-                      : calcularEstado(stockVariante, umbralVariante);
-
-                    return (
-                      <tr
-                        key={variante.varianteId}
-                        style={{
-                          background: fondo,
-                          borderBottom: '1px solid #f1f5f9'
-                        }}
-                      >
-                        <td style={td} />
-
-                        <td
-                          style={{
-                            ...td,
-                            paddingLeft: '20px',
-                            color: '#4b5563'
-                          }}
-                        >
-                          ↳ {variante.peso}
-                        </td>
-
-                        <td style={{ ...td, textAlign: 'right' }}>
+                  <td className={styles.td}>
+                    <div className={styles.variantesContainer}>
+                      {producto.variantes.map((variante) => (
+                        <span key={variante.varianteId} className={styles.variante}>
+                          <span className={styles.variantePeso}>
+                            {variante.peso}:
+                          </span>
                           <input
                             type="number"
                             value={variante.precio}
@@ -486,115 +368,24 @@ export default function AdminStockPage() {
                                 e.target.value
                               )
                             }
-                            style={{ ...input, textAlign: 'right' }}
+                            className={styles.inputPrecio}
                           />
-                        </td>
-
-                        <td style={{ ...td, textAlign: 'right' }}>
-                          {esGranel ? (
-                            <span style={{ color: '#9ca3af' }}>—</span>
-                          ) : (
-                            <input
-                              type="number"
-                              step="1"
-                              min="0"
-                              value={variante.stock}
-                              onChange={(e) =>
-                                actualizarVarianteStock(
-                                  variante.varianteId,
-                                  e.target.value === ''
-                                    ? 0
-                                    : Math.round(Number(e.target.value))
-                                )
-                              }
-                              style={{ ...input, textAlign: 'right' }}
-                            />
-                          )}
-                        </td>
-
-                        <td style={{ ...td, textAlign: 'right' }}>
-                          {esGranel ? (
-                            <span style={{ color: '#9ca3af' }}>—</span>
-                          ) : (
-                            <input
-                              type="number"
-                              step="1"
-                              min="0"
-                              value={variante.stockMinimo ?? 0}
-                              onChange={(e) =>
-                                actualizarVarianteStockMinimo(
-                                  variante.varianteId,
-                                  e.target.value === ''
-                                    ? 0
-                                    : Math.round(Number(e.target.value))
-                                )
-                              }
-                              style={{ ...input, textAlign: 'right' }}
-                            />
-                          )}
-                        </td>
-
-                        <td style={{ ...td, textAlign: 'center' }}>
-                          {estadoVariante && (
-                            <span
-                              style={{
-                                background: estadoVariante.color,
-                                padding: '2px 8px',
-                                borderRadius: '999px',
-                                fontSize: '11px',
-                                fontWeight: 'bold'
-                              }}
-                            >
-                              {estadoVariante.texto}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </Fragment>
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                </tr>
               );
             })}
           </tbody>
         </table>
       </div>
 
-      <button
-        onClick={guardarCambios}
-        disabled={guardando}
-        style={{
-          marginTop: '12px',
-          background: '#16a34a',
-          color: '#fff',
-          border: 'none',
-          padding: '10px 16px',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          fontSize: '14px'
-        }}
-      >
-        {guardando ? 'Guardando...' : 'Guardar cambios'}
-      </button>
+      <div className={styles.guardarInferior}>
+        <Button variant="success" onClick={guardarCambios} disabled={guardando}>
+          {guardando ? 'Guardando...' : 'Guardar cambios'}
+        </Button>
+      </div>
     </div>
   );
 }
-
-const th = {
-  padding: '6px 10px',
-  fontSize: '13px',
-  textAlign: 'left'
-};
-
-const td = {
-  padding: '4px 10px',
-  fontSize: '13px'
-};
-
-const input = {
-  width: '100%',
-  padding: '3px 6px',
-  borderRadius: '6px',
-  border: '1px solid #d1d5db',
-  fontSize: '13px'
-};

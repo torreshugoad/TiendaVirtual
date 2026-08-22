@@ -57,6 +57,32 @@ function formatearGramos(gramos) {
   return `${gramos}Gr`;
 }
 
+/* ==========================
+   crypto.randomUUID() solo existe en contextos seguros
+   (HTTPS, o localhost bien resuelto). Al probar en la red
+   local por IP (ej. http://192.168.x.x:3000) o en HTTP plano,
+   el navegador no lo expone. Este fallback no necesita ser
+   criptográficamente perfecto, solo único para el propósito
+   de identificar un carrito.
+========================== */
+
+function generarId() {
+
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
+
+    return crypto.randomUUID();
+  }
+
+  return (
+    Date.now().toString(36) +
+    '-' +
+    Math.random().toString(36).slice(2)
+  );
+}
+
 export default function CheckoutPage() {
 
   const [carrito, setCarrito] =
@@ -86,6 +112,10 @@ export default function CheckoutPage() {
     setPedidoConfirmado] =
     useState(false);
 
+  const [cartId,
+    setCartId] =
+    useState(null);
+
   const [loading,
     setLoading] =
     useState(false);
@@ -104,6 +134,26 @@ export default function CheckoutPage() {
     setCarrito(
       carritoGuardado
     );
+
+    // El cartId identifica a ESTE carrito para el backend.
+    // Se genera una sola vez y se reutiliza mientras el carrito
+    // no se haya confirmado, sin importar cuántas pestañas del
+    // checkout tenga abiertas el usuario.
+    let cartIdGuardado =
+      localStorage.getItem('cartId');
+
+    if (!cartIdGuardado) {
+
+      cartIdGuardado =
+        generarId();
+
+      localStorage.setItem(
+        'cartId',
+        cartIdGuardado
+      );
+    }
+
+    setCartId(cartIdGuardado);
 
     obtenerConfiguracion();
 
@@ -347,7 +397,9 @@ export default function CheckoutPage() {
           costoEnvio,
 
         items:
-          itemsPedido
+          itemsPedido,
+
+        cartId
 
       };
 
@@ -467,6 +519,10 @@ TOTAL: $${totalFinal}`;
 
       localStorage.removeItem(
         'carrito'
+      );
+
+      localStorage.removeItem(
+        'cartId'
       );
 
       setCarrito([]);

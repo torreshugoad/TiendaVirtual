@@ -1,0 +1,118 @@
+.page {
+  background: #f5f5f5;
+  min-height: 100vh;
+  padding: 10px;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.titulo {
+  margin: 0;
+}
+
+.botonOscuro {
+  background: #111827;
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.vacioCard {
+  background: #fff;
+  padding: 40px;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.botonVerde {
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.itemCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.itemInfo {
+  flex: 1;
+}
+
+.itemNombre {
+  margin-top: 0;
+}
+
+.controlesCantidad {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.botonCantidad {
+  width: 46px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 30px;
+}
+
+.itemResumen {
+  text-align: left;
+}
+
+.botonEliminar {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.resumenCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.botonFinalizar {
+  width: 100%;
+  margin-top: 20px;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+}

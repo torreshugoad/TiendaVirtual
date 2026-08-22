@@ -1,463 +1,107 @@
 'use client';
 
-import useAdminAuth
-from '@/hooks/useAdminAuth';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { LayoutDashboard } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
+import useAdminAuth from '@/hooks/useAdminAuth';
+import usePeriodo from '@/hooks/usePeriodo';
 import { apiFetch } from '@/lib/api';
+import FiltroPeriodo from '@/components/admin/FiltroPeriodo';
 
-import {
-  useEffect,
-  useState
-} from 'react';
+import ReporteCard from '@/components/admin/reportes/ReporteCard';
+import ProductosVendidosTable from '@/components/admin/reportes/ProductosVendidosTable';
 
-import * as XLSX
-  from 'xlsx';
-
-import { saveAs }
-  from 'file-saver';
+import styles from './reportes.module.css';
 
 export default function ReportesPage() {
+  const loading = useAdminAuth();
+  const { tipo, setTipo, fechaInicio, setFechaInicio, fechaFin, setFechaFin } = usePeriodo('semana');
+  const [reporte, setReporte] = useState(null);
 
-const loading =
-  useAdminAuth();
+  useEffect(() => {
+    if (!loading && fechaInicio && fechaFin) {
+      obtenerReporte();
+    }
+  }, [loading, fechaInicio, fechaFin]);
 
-  const [tipo,
-    setTipo] =
-    useState('semana');
-
-  const [reporte,
-    setReporte] =
-    useState(null);
-
-  const [fechaInicio,
-    setFechaInicio] =
-    useState('');
-
-  const [fechaFin,
-    setFechaFin] =
-    useState('');
-
-useEffect(() => {
-  if (!loading) {
-    obtenerReporte();
-  }
-}, [loading, tipo]);
-
-async function obtenerReporte() {
-  try {
-    const res = await apiFetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/reportes/ventas?tipo=${tipo}`
-    );
-    if (!res) return;
-    const data = await res.json();
-    console.log(data);
-    setReporte(data);
-  }
-  catch (error) {
-    console.error(error);
-  }
-}
-
-
-  function formatearFecha(fecha) {
-
-    return new Date(fecha)
-      .toLocaleString();
+  async function obtenerReporte() {
+    try {
+      const res = await apiFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/reportes/ventas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`
+      );
+      if (!res) return;
+      const data = await res.json();
+      setReporte(data);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async function exportarExcel() {
+    if (!fechaInicio || !fechaFin) return;
 
-    if (
-      !fechaInicio ||
-      !fechaFin
-    ) {
-
-      alert(
-        'Seleccionar fechas'
-      );
-
-      return;
-    }
-
-const res = await apiFetch(
-
-  `${process.env.NEXT_PUBLIC_API_URL}/api/reportes/ventas-excel?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`
-
-);
-
-if (!res) return;
-
-const ventas = await res.json();
-
-    const datos =
-      ventas.map(v => ({
-
-        Fecha:
-          formatearFecha(
-            v.fecha
-          ),
-
-        Cliente:
-          v.cliente,
-
-        Telefono:
-          v.telefono,
-
-        Producto:
-          v.producto,
-
-        Variante:
-          v.variante,
-
-        Cantidad:
-          v.cantidad,
-
-        Precio:
-          v.precio,
-
-        Importe:
-          v.subtotal,
-
-        Estado:
-          v.estado
-
-      }));
-
-    const workbook =
-      XLSX.utils.book_new();
-
-    const sheet =
-      XLSX.utils.json_to_sheet(
-        datos
-      );
-
-    XLSX.utils.book_append_sheet(
-
-      workbook,
-
-      sheet,
-
-      'Ventas'
-
+    const res = await apiFetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/reportes/ventas-excel?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`
     );
+    if (!res) return;
 
-    const excelBuffer =
-      XLSX.write(
+    const ventas = await res.json();
+    const datos = ventas.map((v) => ({
+      Fecha: new Date(v.fecha).toLocaleString(),
+      Cliente: v.cliente,
+      Telefono: v.telefono,
+      Producto: v.producto,
+      Variante: v.variante,
+      Cantidad: v.cantidad,
+      Precio: v.precio,
+      Importe: v.subtotal,
+      Estado: v.estado
+    }));
 
-        workbook,
-
-        {
-          bookType: 'xlsx',
-          type: 'array'
-        }
-
-      );
-
-    const data =
-      new Blob(
-
-        [excelBuffer],
-
-        {
-          type:
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }
-
-      );
-
-    saveAs(
-      data,
-      'reporte_ventas.xlsx'
-    );
+    const workbook = XLSX.utils.book_new();
+    const sheet = XLSX.utils.json_to_sheet(datos);
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Ventas');
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(data, `reporte_ventas_${fechaInicio}_a_${fechaFin}.xlsx`);
   }
 
-if (loading) {
-
-  return null;
-
-}
+  if (loading) return null;
 
   return (
-
-    <main style={{
-      padding: 30,
-      fontFamily: 'Arial',
-      background: '#f7f7f7',
-      minHeight: '100vh'
-    }}>
-
-      <div style={{
-        display: 'flex',
-        justifyContent:
-          'space-between',
-        alignItems: 'center',
-        marginBottom: 30,
-        flexWrap: 'wrap',
-        gap: 20
-      }}>
-
-        <div>
-
-          <h1>
-            Reportes Ventas
-          </h1>
-
-          <div style={{
-            display: 'flex',
-            gap: 10,
-            marginTop: 15,
-            flexWrap: 'wrap'
-          }}>
-
-            <input
-              type="date"
-              value={fechaInicio}
-              onChange={(e) =>
-
-                setFechaInicio(
-                  e.target.value
-                )
-
-              }
-              style={inputStyle}
-            />
-
-            <input
-              type="date"
-              value={fechaFin}
-              onChange={(e) =>
-
-                setFechaFin(
-                  e.target.value
-                )
-
-              }
-              style={inputStyle}
-            />
-
-            <button
-              onClick={
-                exportarExcel
-              }
-              style={botonExcel}
-            >
-
-              Exportar Excel
-
-            </button>
-
-          </div>
-
-        </div>
-
-        <select
-          value={tipo}
-          onChange={(e) =>
-
-            setTipo(
-              e.target.value
-            )
-
-          }
-          style={{
-            padding: 12,
-            borderRadius: 10,
-            border:
-              '1px solid #ddd'
-          }}
-        >
-
-          <option value="semana">
-            Última semana
-          </option>
-
-          <option value="mes">
-            Último mes
-          </option>
-
-        </select>
-
+    <main className={styles.main}>
+      <div className={styles.headerContainer}>
+        <h1 className={styles.title}>Reportes Ventas</h1>
+        <Link href="/admin" className={styles.btnSecondary}>
+          <LayoutDashboard size={15} />
+          Panel Administrador
+        </Link>
       </div>
 
+      <FiltroPeriodo
+        tipo={tipo}
+        setTipo={setTipo}
+        fechaInicio={fechaInicio}
+        setFechaInicio={setFechaInicio}
+        fechaFin={fechaFin}
+        setFechaFin={setFechaFin}
+        onExportar={exportarExcel}
+      />
+
       {reporte && (
-
         <>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns:
-              'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: 20,
-            marginBottom: 30
-          }}>
-
-            <Card
-              titulo="Facturación"
-              valor={`$${reporte.facturacionTotal?.toFixed(2)}`}
-            />
-
-            <Card
-              titulo="Pedidos"
-              valor={
-                reporte.cantidadPedidos
-              }
-            />
-
-            <Card
-              titulo="Ticket Promedio"
-              valor={`$${reporte.ticketPromedio?.toFixed(2)}`}
-            />
-
+          <div className={styles.cardsGrid}>
+            <ReporteCard titulo="Facturación" valor={`$${reporte.facturacionTotal?.toFixed(2)}`} />
+            <ReporteCard titulo="Pedidos" valor={reporte.cantidadPedidos} />
+            <ReporteCard titulo="Ticket Promedio" valor={`$${reporte.ticketPromedio?.toFixed(2)}`} />
           </div>
 
-          <div style={{
-            background: 'white',
-            borderRadius: 12,
-            padding: 25
-          }}>
-
-            <h2>
-              Productos vendidos
-            </h2>
-
-            <table style={{
-              width: '100%',
-              borderCollapse:
-                'collapse'
-            }}>
-
-              <thead>
-
-                <tr>
-
-                  <th style={thStyle}>
-                    Producto
-                  </th>
-
-                  <th style={thStyle}>
-                    Cantidad
-                  </th>
-
-                  <th style={thStyle}>
-                    Importe
-                  </th>
-
-                </tr>
-
-              </thead>
-
-              <tbody>
-
-                {reporte.productos?.map(
-                  (producto, index) => (
-
-                  <tr key={index}>
-
-                    <td style={tdStyle}>
-                      {producto.producto}
-                    </td>
-
-                    <td style={tdStyle}>
-                      {producto.cantidad}
-                    </td>
-
-                    <td style={tdStyle}>
-
-                      $
-                      {producto.importe?.toFixed(2)}
-
-                    </td>
-
-                  </tr>
-
-                ))}
-
-              </tbody>
-
-            </table>
-
-          </div>
-
+          <ProductosVendidosTable productos={reporte.productos} />
         </>
-
       )}
-
     </main>
   );
 }
-
-function Card({
-  titulo,
-  valor
-}) {
-
-  return (
-
-    <div style={{
-      background: 'white',
-      padding: 25,
-      borderRadius: 12,
-      boxShadow:
-        '0 2px 8px rgba(0,0,0,0.08)'
-    }}>
-
-      <h3>
-        {titulo}
-      </h3>
-
-      <h1>
-        {valor}
-      </h1>
-
-    </div>
-  );
-}
-
-const thStyle = {
-
-  borderBottom:
-    '1px solid #ddd',
-
-  textAlign: 'left',
-
-  padding: 12
-
-};
-
-const tdStyle = {
-
-  borderBottom:
-    '1px solid #eee',
-
-  padding: 12
-
-};
-
-const inputStyle = {
-
-  padding: 12,
-
-  borderRadius: 10,
-
-  border:
-    '1px solid #ddd'
-
-};
-
-const botonExcel = {
-
-  background: '#4CAF50',
-
-  color: 'white',
-
-  border: 'none',
-
-  padding: '12px 20px',
-
-  borderRadius: 10,
-
-  cursor: 'pointer',
-
-  fontWeight: 'bold'
-
-};

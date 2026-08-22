@@ -1,0 +1,234 @@
+.page {
+  padding: 14px;
+  background: #f3f4f6;
+  min-height: 100vh;
+}
+
+.titulo {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.card {
+  flex: 1 1 260px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.cardsRow {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.cardCentrada {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.precioBox {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 6px;
+  text-align: center;
+}
+
+.precioBoxEtiqueta {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.precioBoxTachado {
+  font-size: 14px;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.precioBoxFinal {
+  font-size: 22px;
+  font-weight: bold;
+  color: #16a34a;
+}
+
+.precioBoxDescuento {
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.botonPrimario {
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.botonPrimario:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.botonAncho {
+  width: 100%;
+}
+
+.botonQuitar {
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.mb8 {
+  margin-bottom: 8px;
+}
+
+.mt10 {
+  margin-top: 10px;
+}
+
+.stockInfo {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.stockInfoAlerta {
+  font-size: 13px;
+  color: #dc2626;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.filaGap {
+  display: flex;
+  gap: 8px;
+}
+
+.inputFlex {
+  flex: 1;
+}
+
+.selectUnidad {
+  width: 80px;
+}
+
+.selectDescuentoTipo {
+  width: 70px;
+}
+
+.inputCantidadFila {
+  width: 60px;
+}
+
+/* ---- Carrito ---- */
+
+.itemFila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.itemInfo {
+  flex: 2;
+}
+
+.itemNombre {
+  font-weight: bold;
+}
+
+.itemMeta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.precioTachado {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+.descuentoTexto {
+  color: #dc2626;
+}
+
+.itemSubtotal {
+  width: 80px;
+  text-align: right;
+  font-weight: bold;
+}
+
+.vacio {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.totales {
+  margin-top: 12px;
+  text-align: right;
+}
+
+.totalLinea {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.totalFinal {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.errorTexto {
+  color: #dc2626;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* ---- Pedido confirmado ---- */
+
+.confirmadoWrap {
+  max-width: 420px;
+  margin: 40px auto;
+  text-align: center;
+}
+
+.confirmadoTitulo {
+  color: #16a34a;
+}
+
+.confirmadoTexto {
+  color: #6b7280;
+}
+
+.confirmadoBoton {
+  margin-top: 16px;
+}

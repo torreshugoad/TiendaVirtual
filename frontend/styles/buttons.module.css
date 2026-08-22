@@ -1,0 +1,127 @@
+/*
+  Estilos de botones y badges COMPARTIDOS entre pantallas de /admin/compras.
+  Ubicación sugerida: frontend/styles/buttons.module.css
+  (ajustá la ruta relativa en los `composes: ... from '...'` si tu estructura
+  real es distinta)
+*/
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  line-height: 1.2;
+  transition: background-color 150ms ease-in-out, opacity 150ms ease-in-out;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Variantes --- */
+
+.btnPrimary {
+  composes: btn;
+  background: #015602;
+  color: #fff;
+}
+.btnPrimary:hover:not(:disabled) {
+  background: #024a03;
+}
+
+.btnSecondary {
+  composes: btn;
+  background: transparent;
+  border: 1px solid #5c5c5d;
+  color: #111;
+}
+.btnSecondary:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.btnDanger {
+  composes: btn;
+  background: #b02a2a;
+  color: #fff;
+}
+.btnDanger:hover:not(:disabled) {
+  background: #8f2222;
+}
+
+.btnGhost {
+  composes: btn;
+  background: transparent;
+  border: none;
+  color: #374151;
+}
+.btnGhost:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Botón de exportación (ej. "Exportar Excel" en FiltroPeriodo).
+   Verde distinto del btnPrimary para diferenciarlo como acción de
+   descarga/exportación, no de confirmación. */
+.btnExport {
+  composes: btn;
+  background: #16a34a;
+  color: #fff;
+}
+.btnExport:hover:not(:disabled) {
+  background: #128a3e;
+}
+
+/* --- Modificador de tamaño --- */
+.btnSmall {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+/* --- Botón de sólo ícono (ej. tabla de historial) --- */
+.iconButton {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+}
+
+/* Links que visualmente son botones (ej. <Link>Historial</Link>) */
+.linkButtonBase {
+  composes: btn btnSecondary;
+}
+
+/* --- Badges de estado --- */
+.badge {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  display: inline-block;
+  text-align: center;
+}
+
+.badgeBorrador {
+  color: #856404;
+  background: #fff3cd;
+}
+
+.badgeConfirmada {
+  color: #155724;
+  background: #d4edda;
+}
+
+.badgeAnulada {
+  color: #721c24;
+  background: #f8d7da;
+}
