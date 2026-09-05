@@ -429,7 +429,13 @@ router.post(
 
           }
 
+          // Si el item trae varianteId (carrito manual: el vendedor
+          // eligió explícitamente la tarifa), usamos ESA variante.
+          // Si no viene (checkout normal del cliente, que solo carga
+          // un peso), caemos al cálculo automático por umbral de peso.
           const varianteTarifa =
+            (item.varianteId &&
+              producto.variantes.id(item.varianteId)) ||
             obtenerVarianteDeTarifa(
               producto.variantes,
               gramosSolicitados
@@ -488,6 +494,8 @@ router.post(
         } else {
 
           const variante =
+            (item.varianteId &&
+              producto.variantes.id(item.varianteId)) ||
             producto.variantes.find(
 
               v =>

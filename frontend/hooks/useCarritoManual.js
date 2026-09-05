@@ -183,6 +183,7 @@ export default function useCarritoManual() {
       {
         tempId: generarId(),
         productoId: productoSeleccionado._id,
+        varianteId: varianteSeleccionada?._id || null,
         nombre: productoSeleccionado.nombre,
         foto: productoSeleccionado.foto,
         peso: pesoTexto,
@@ -264,6 +265,7 @@ export default function useCarritoManual() {
     try {
       const itemsPedido = carrito.map(item => ({
         productoId: item.productoId,
+        varianteId: item.varianteId,
         nombre: item.nombre,
         foto: item.foto,
         peso: item.peso,
